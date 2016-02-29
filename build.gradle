@@ -1,0 +1,55 @@
+buildscript {
+    repositories {
+        maven { url 'http://clojars.org/repo' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'clojuresque:clojuresque:1.7.0'
+    }
+}
+
+
+group 'de.halbordnung.ontologies'
+version '0.0.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'clojure'
+
+repositories {
+    mavenCentral()
+    maven { url 'http://clojars.org/repo' }
+}
+
+clojure.aotCompile = true
+
+dependencies {
+    compile 'org.clojure:clojure:1.8.0'
+    compile 'uk.org.russet:tawny-owl:1.4.0'
+    compile 'danlentz:clj-uuid:0.1.6'
+}
+
+sourceSets {
+    main {
+        clojure {
+            srcDirs = ["src/main/clojure", "src/main/resources"]
+        }
+    }
+    test {
+        clojure {
+            srcDirs = ["src/test/clojure", "src/main/resources"]
+        }
+    }
+}
+
+jar {
+  manifest.attributes("Main-Class": "phaseant.writer")
+}
+
+uberjar {
+
+    manifest.attributes("Main-Class": "phaseant.writer")
+}
+
+apply plugin: 'application'
+mainClassName = "phaseant.writer"
+uberjar.enabled = true
