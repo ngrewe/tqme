@@ -20,7 +20,7 @@
 (defclass phase
   :label "phase"
   :comment (ml "Phases are restricted counterparts of histories. They"
-               "are temporal parts of historys and share the"
+               "are temporal parts of histories and share the"
                "following characteristics:"
                ""
                "  * They are comprised of a sum of processes."
