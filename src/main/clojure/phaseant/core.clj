@@ -1,78 +1,70 @@
 (ns ^{:doc    "Core definitions for phaseants (continuant profiles/temporally qualified continuants)."
       :author "Niels Grewe"}
-phaseant.core
+ phaseant.core
   (:require [phaseant.base :as b])
   (:use [tawny.owl]))
-
 
 (defn- ml "Generates a multi line string" [& strings] (clojure.string/join "\n" strings))
 
 (defontology tqc
-             :iri "http://www.halbordnung.de/ontologies/phaseant.owl"
-             :prefix "tqc:"
-             :iri-gen b/iri-generate
-             )
+  :iri "http://www.halbordnung.de/ontologies/phaseant.owl"
+  :prefix "tqc:"
+  :iri-gen b/iri-generate)
 
 (owl-import b/bfo)
 
 ;; holder for the new entities
 (defclass xntity
-          :label "*entity"
-          :comment "holder type for tqc/phaseant entities"
-          )
+  :label "*entity"
+  :comment "holder type for tqc/phaseant entities")
 (defclass phase
-          :label "phase"
-          :comment (ml "Phases are restricted counterparts of histories. They"
-                       "are temporal parts of historys and share the"
-                       "following characteristics:"
-                       ""
-                       "  * They are comprised of a sum of processes."
-                       "  * The process sum that makes up the part is the"
-                       "    totality of all processes taking place in a"
-                       "    certain spatiotemporal region."
-                       "  * They pertain to a single entity."))
+  :label "phase"
+  :comment (ml "Phases are restricted counterparts of histories. They"
+               "are temporal parts of historys and share the"
+               "following characteristics:"
+               ""
+               "  * They are comprised of a sum of processes."
+               "  * The process sum that makes up the part is the"
+               "    totality of all processes taking place in a"
+               "    certain spatiotemporal region."
+               "  * They pertain to a single entity."))
 
 (as-equivalent phase (owl-some b/part_of_occurrent b/history))
 
 (defclass phas-eant
-          :label "temporally qualified continuant"
-          :comment (ml "A temporally qualified continuant is an analog of a"
-                       "process profile in the domain of continuants. Just as"
-                       "a process having a certain profile implies its being"
-                       "such and such in a specific structural dimension,"
-                       "being a temporally qualified continuant implies that a"
-                       "continuant shares a certain feature over a specific"
-                       "period of its existance."
-                       ""
-                       "Each temporally qualified continuants maps to a"
-                       "specific subinterval of the history of the"
-                       "continuant."
-                       )
-          )
+  :label "temporally qualified continuant"
+  :comment (ml "A temporally qualified continuant is an analog of a"
+               "process profile in the domain of continuants. Just as"
+               "a process having a certain profile implies its being"
+               "such and such in a specific structural dimension,"
+               "being a temporally qualified continuant implies that a"
+               "continuant shares a certain feature over a specific"
+               "period of its existance."
+               ""
+               "Each temporally qualified continuants maps to a"
+               "specific subinterval of the history of the"
+               "continuant."))
 
 (as-subclasses
-  xntity
-  :disjoint :cover
-  phase
-  phas-eant
-  )
+ xntity
+ :disjoint :cover
+ phase
+ phas-eant)
 
 ;; Match the history axiom
 (add-superclass phase (owl-only b/part_of_occurrent (owl-not b/process_profile)))
 
 (defoproperty phase-of
-              :label "phase of"
-              :super b/specifically_depends_on_at_all_times
-              :domain phase
-              :range phas-eant
-              :characteristic :functional
-              )
+  :label "phase of"
+  :super b/specifically_depends_on_at_all_times
+  :domain phase
+  :range phas-eant
+  :characteristic :functional)
 
 (defoproperty has-phase
-              :label "has phase"
-              :inverse phase-of
-              :characteristic :inversefunctional
-              )
+  :label "has phase"
+  :inverse phase-of
+  :characteristic :inversefunctional)
 (add-subproperty phase-of b/history_of)
 
 (add-superclass phase (owl-some phase-of phas-eant))
@@ -89,26 +81,24 @@ phaseant.core
   [o & args]
   (guess-type o args))
 
-
 (defmulti phase-perm-spec
-          "Returns a restriction on an phase that is scoped as permanently specific"
-          #'guess-type-args)
+  "Returns a restriction on an phase that is scoped as permanently specific"
+  #'guess-type-args)
 
 (defmulti phase-temp
-          "Returns a restriction on an phase that is scoped as temporary"
-          #'guess-type-args)
+  "Returns a restriction on an phase that is scoped as temporary"
+  #'guess-type-args)
 
 (defmulti perm-spec
-          "Returns a restriction on a continuant to be permanently specifically of a type"
-          #'guess-type-args)
+  "Returns a restriction on a continuant to be permanently specifically of a type"
+  #'guess-type-args)
 
 (defmulti temp
-          "Returns a restriction on a continuant to be temporarily of a type"
-          #'guess-type-args)
+  "Returns a restriction on a continuant to be temporarily of a type"
+  #'guess-type-args)
 
 (defmethod phase-perm-spec nil [& rest]
   (apply guess-type-error rest))
-
 
 (defmethod phase-temp nil [& rest]
   (apply guess-type-error rest))
@@ -116,55 +106,46 @@ phaseant.core
 (defmethod perm-spec nil [& rest]
   (apply guess-type-error rest))
 
-
 (defmethod temp nil [& rest]
   (apply guess-type-error rest))
 
 (defmontfn ophase-perm-spec
-            {:doc      "Returns a restriction on an phase that is scoped as permanently specific."
-             :arglists '([& clazzes] [ontology & clazzes])}
-            [o class]
-            (owl-some o phase-of class)
-            )
+  {:doc      "Returns a restriction on an phase that is scoped as permanently specific."
+   :arglists '([& clazzes] [ontology & clazzes])}
+  [o class]
+  (owl-some o phase-of class))
 
 (defmethod phase-perm-spec :tawny.owl/object [& rest]
   (apply ophase-perm-spec rest))
 
 (defmontfn ophase-temp
-            {:doc      "Returns a restriction on an phase that is scoped as temporary"
-             :arglists '([& clazzes] [ontology & clazzes])}
-            [o class]
-            (owl-and o
-              (owl-some o b/has_occurrent_part (phase-perm-spec o class))
-              (owl-some o b/has_proper_occurrent_part
-                        (owl-and o phase
-                                 (owl-not (owl-some b/has_proper_occurrent_part owl-thing))
-                                  (phase-perm-spec o class)
-                                 )
-                        )
-                     )
-            )
+  {:doc      "Returns a restriction on an phase that is scoped as temporary"
+   :arglists '([& clazzes] [ontology & clazzes])}
+  [o class]
+  (owl-and o
+           (owl-some o b/has_occurrent_part (phase-perm-spec o class))
+           (owl-some o b/has_proper_occurrent_part
+                     (owl-and o phase
+                              (owl-not (owl-some b/has_proper_occurrent_part owl-thing))
+                              (phase-perm-spec o class)))))
 
 (defmethod phase-temp :tawny.owl/object [& rest]
   (apply ophase-temp rest))
 
-
 (defmontfn object-perm-spec
-            {:doc      "Returns a restriction on a continuant that is scoped as permanently specific."
-             :arglists '([& clazzes] [ontology & clazzes])}
-            [o class]
-            (owl-some o b/has_history (phase-perm-spec o class))
-            )
+  {:doc      "Returns a restriction on a continuant that is scoped as permanently specific."
+   :arglists '([& clazzes] [ontology & clazzes])}
+  [o class]
+  (owl-some o b/has_history (phase-perm-spec o class)))
 
 (defmethod perm-spec :tawny.owl/object [& rest]
   (apply object-perm-spec rest))
 
 (defmontfn object-temp
-            {:doc      "Returns a restriction on an phase that is scoped as temporary"
-             :arglists '([& clazzes] [ontology & clazzes])}
-            [o class]
-            (owl-some o b/has_history (phase-temp o class))
-            )
+  {:doc      "Returns a restriction on an phase that is scoped as temporary"
+   :arglists '([& clazzes] [ontology & clazzes])}
+  [o class]
+  (owl-some o b/has_history (phase-temp o class)))
 
 (defmethod temp :tawny.owl/object [& rest]
   (apply object-temp rest))
@@ -177,9 +158,8 @@ phaseant.core
   (add-subclass o phase name)
   (add-equivalent o name
                   (owl-and o (owl-or o (phase-perm-spec o clazz)
-                                   (owl-some o b/has_proper_occurrent_part name))
-                           (owl-only o b/has_proper_occurrent_part name)))
-  )
+                                     (owl-some o b/has_proper_occurrent_part name))
+                           (owl-only o b/has_proper_occurrent_part name))))
 
 (defmontfn
   perm-gen
@@ -189,8 +169,5 @@ phaseant.core
    :arglists '([name & clazz] [ontology name & clazz])}
   [o name clazz]
   (add-phase-perm-gen o name clazz)
-  (owl-some o b/has_history name)
-  )
-
-
+  (owl-some o b/has_history name))
 
