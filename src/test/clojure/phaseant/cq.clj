@@ -245,6 +245,12 @@
                                  (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
                                  (o/! to (o/owl-some to c/phase-of (o/owl-some to b/has_continuant_part_at_all_times
                                                                                "oxygen-molecule")))))
+  (o/owl-class to "root-phase2"
+               :super (o/owl-and to
+                                 c/phase
+                                 (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
+                                 (o/owl-some to c/phase-of (o/owl-some to b/has_continuant_part_at_all_times
+                                                                               "tooth"))))
   (o/disjoint-classes to (list "oxygen-molecule" "red-blood-cell" "tooth" "apple"))
 
   (o/add-superclass to "red-blood-cell"
@@ -253,29 +259,35 @@
   (o/add-superclass to "apple"
                     (c/perm-gen to "gen_apple-tooth_phase" (o/owl-only to
                                                                        b/has_continuant_part_at_all_times
-                                                                       (o/owl-not to "tooth")))) (let  [history (o/individual to "history"
-                                                                                                                              :type b/history)
-                                                                                                        phase (o/individual to "ph"
-                                                                                                                            :type "root-phase")
-                                                                                                        cell (o/individual to "cell"
-                                                                                                                           :type "red-blood-cell"
-                                                                                                                           :fact (o/fact to b/has_history history))]
+                                                                       (o/owl-not to "tooth"))))
+  (let  [cell_history (o/individual to "cell-history"
+                               :type b/history)
+         cell_phase (o/individual to "cell-ph"
+                             :type "root-phase")
+         cell (o/individual to "cell"
+                            :type "red-blood-cell"
+                            :fact (o/fact to b/has_history cell_history))
+         apple_history (o/individual to "apple-history"
+                                     :type b/history)
+         apple (o/individual to "apple"
+                             :type "apple"
+                             :fact (o/fact to b/has_history apple_history))
+         apple_phase (o/individual to "apple-ph"
+                                   :type "root-phase2")
 
-                                                                                                   (o/with-probe-axioms to
-                                                                                                     [a (o/add-fact to history (o/fact to b/has_proper_occurrent_part phase))]
-                                                                                                     (is (not (r/consistent? to))
-                                                                                                         "There are red blood cells without oxygen molecules → owl:Nothing")))
+
+         ]
+
+    (o/with-probe-axioms to
+                         [a (o/add-fact to cell_history (o/fact to b/has_proper_occurrent_part cell_phase))]
+                         (is (not (r/consistent? to))
+                             "There are red blood cells without oxygen molecules → owl:Nothing"))
 
   (o/with-probe-axioms to
-    [a (o/add-superclass to "apple"
-                         (o/owl-some to b/has_history (o/owl-and to
-                                                                 (o/owl-not to (o/owl-some to b/has_proper_occurrent_part
-                                                                                           o/owl-thing))
-                                                                 (o/owl-some to c/phase-of
-                                                                             (o/owl-some to b/has_continuant_part_at_all_times
-                                                                                         "tooth")))))]
+                       [a (o/add-fact to apple_history (o/fact to b/has_proper_occurrent_part apple_phase))]
     (is (not (r/consistent? to))
         "There are apples that have teeth at some time → owl:Nothing")))
+  )
 
 (deftest pgr_cm-
 
@@ -350,29 +362,41 @@
   (o/owl-class to "breathing-process"
                :super b/process)
 
-  (o/add-superclass to "breathing-process"
-                    (c/perm-gen to "gen_breathing-volume_phase" (o/owl-some to b/has_participant_at_all_times "air-volume")))
+  (o/add-superclass to "breathing-process" (o/owl-and b/process
+                    (o/owl-or (o/owl-some to b/has_participant_at_all_times "air-volume")
+                              (o/owl-and (o/owl-some to b/has_proper_occurrent_part "breathing-process")
+                                         (o/owl-only to b/has_proper_occurrent_part "breathing-process")
+                              ))
+                    ))
 
-  (o/owl-class to "root-phase"
+  (o/owl-class to "root-part"
                :super (o/owl-and to
-                                 c/phase
+                                 b/process
                                  (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
-                                 (o/! to (o/owl-some to c/phase-of (o/owl-some to b/has_participant_at_all_times
-                                                                               "air-volumne")))))
+                                 (o/! to (o/owl-some to b/has_participant_at_all_times "air-volume"))
+                      )
+               )
 
-  (let  [history (o/individual to "history"
-                               :type b/history)
-         phase (o/individual to "ph"
-                             :type "root-phase")
+  (o/owl-class to "indirect-breathing-process"
+               :super "breathing-process"
+              )
+  (o/add-superclass to "indirect-breathing-process"
+                    (o/! (o/owl-some to b/has_participant_at_all_times "air-volume"))
+                    )
+
+  (let  [part (o/individual to "part"
+                             :type "root-part")
+         ;; Breath needs to be an indirect breathing process because otherwise we will infer that there must be an
+         ;; air-volume that we didn't mention which participates in the breath process
          breath (o/individual to "breath"
-                              :type "breathing-process"
-                              :fact (o/fact to b/has_history history))]
+                              :type "indirect-breathing-process")
+                             ]
 
     (is (r/consistent? to)
         "Consistent TQC ontology for process")
 
     (o/with-probe-axioms to
-      [a (o/add-fact to history (o/fact to b/has_proper_occurrent_part phase))]
+      [a (o/add-fact to breath (o/fact to b/has_proper_occurrent_part part))]
       (is (not (r/consistent? to))
           "There are parts of breathing processes (in mammals) in which no air volume participates → owl:Nothing"))))
 
