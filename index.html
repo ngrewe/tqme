@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BFO 2 Temporal Qualified Continuant Extensions</title>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+</head>
+  <body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+<div class="container">
+      <div class="header clearfix">
+    <!--    <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" class="active"><a href="https://ngrewe.github.io/tqc">Home</a></li>
+            <li role="presentation"><a href="https://www.github.com/ngrewe/tqc">Source</a></li>
+          </ul>
+      </nav>-->
+        <h3 class="text-muted">BFO&nbsp;2 Temporally Qualified Continuants</h3>
+      </div>
+
+      <div class="jumbotron">
+        <h2>Permanent Generic Relatedness and Silent Change</h2>
+        <p>The temporally qualified continuant (TQC) ontology provides additional
+            classes on top of BFO&nbsp;2 that allow modelling silent changes at
+            the type level. It is provided both as an OWL&nbsp;2 ontology and a Clojure
+            based DSL implemented using <a href="https://github.com/phillord/tawny-owl">Tawny OWL</a>.
+
+        </p>
+        <div class="btn-group pull-right" role="group">
+
+        <a class="btn btn-default " href="https://www.github.com/ngrewe/tqc" role="button"><i class="fa fa-github" aria-hidden="true"></i> View on Github</a>
+        <a class="btn btn-primary" href="tqc.zip" role="button" data-toggle="tooltip" data-placement="bottom" title="Includes BFO 2 and Tawny OWL metadata"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download TQC (OWL)</a>
+       </div>
+      </div>
+            <div class="panel panel-info">
+      <div class="panel-heading"><h4>Competency Questions and Example Scenarios</h4></div>
+
+ <div class="panel-body">
+      <p>We provide a set of example scenarios showcasing the ontology. These are also used
+         as unit tests for verification of the modelling approach. </p>
+         <a class="btn btn-default pull-right" href="tqc-cq.zip"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download Competency Questions</a>
+
+     </div>
+ </div>
+<!--
+  <div class="row">
+      <h3>TGR&nbsp;cm+ <small><span class="label label-default">temporary</span>
+      <span class="label label-info">mereotopolocial</span></small></h3>
+
+        <div class="col-sm-6">
+          <h4>Scenario</h4>
+          <p>Every tooth is part of an organism at some time.</p>
+      </div>
+      <div class="col-sm-6">
+          <h4>Competency Question</h4>
+          <p>Are there teeth which are at some time not part of any organism? <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></li>
+          </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <h3>TGR&nbsp;cm- <small><span class="label label-default">temporary</span>
+        <span class="label label-info">non-mereotopolocial</span></small></h3>
+
+          <div class="col-sm-6">
+            <h4>Scenario</h4>
+            <p>Every apple is green at some time</p>
+        </div>
+        <div class="col-sm-6">
+            <h4>Competency Question</h4>
+            <p>Can an apple be <em>only</em> red at some time? <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></li>
+            </p>
+          </div>
+      </div>
+
+      <div class="row">
+          <h3>TGR&nbsp;cp1 <small><span class="label label-default">temporary</span>
+          <span class="label label-info">participation</span>
+          <span class="label label-warning">quantification over participant</span>
+      </small></h3>
+
+            <div class="col-sm-6">
+              <h4>Scenario</h4>
+              <p>Every vertebrate participates in some birth process (its own).</p>
+          </div>
+          <div class="col-sm-6">
+              <h4>Competency Question</h4>
+              <p>Can there be a time where a vertebrate does not participate in a birth process? <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></li>
+              </p>
+            </div>
+        </div>
+        <div class="row">
+            <h3>TGR&nbsp;cp2 <small><span class="label label-default">temporary</span>
+            <span class="label label-info">participation</span>
+            <span class="label label-warning">quantification over process</span>
+        </small></h3>
+
+              <div class="col-sm-6">
+                <h4>Scenario</h4>
+                <p>Every fecundation has some spermatozoon as participant at some time.</p>
+            </div>
+            <div class="col-sm-6">
+                <h4>Competency Question</h4>
+                <p>Are there fecundation processes in which no spermatozoon ever participates? <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></li>
+                </p>
+              </div>
+          </div>-->
+      <footer class="footer text-muted hidden">
+        <p>© 2016 N. Grewe, J. Hastings, L. Jansen, C. Mungal, A. Ruttenberg, S. Schulz, B. Smith</p>
+      </footer>
+
+    </div>
+</body>
+</html>
