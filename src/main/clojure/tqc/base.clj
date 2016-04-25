@@ -1,6 +1,6 @@
-(ns ^{:doc    "BFO import layer and general declarations for phaseants."
+(ns ^{:doc    "BFO import layer and general declarations for TQCs."
       :author "Niels Grewe"}
- phaseant.base
+ tqc.base
   (:require [clj-uuid :as uuid]
             [tawny.read :as r]
             [tawny.memorise]
@@ -13,8 +13,8 @@
 (defn resource-iri "Get a reference to the local BFO copy"  ^IRI []
   (IRI/create (clojure.java.io/resource "bfo.owl")))
 
-(defn -scoped "Generate a v5 UUID in the phaseant namespace" [^String n]
-  (uuid/v5 (uuid/v5 uuid/+namespace-url+ "http://www.halbordnung.de/ontologies/phaseant.owl")
+(defn -scoped "Generate a v5 UUID in the tqc namespace" [^String n]
+  (uuid/v5 (uuid/v5 uuid/+namespace-url+ "http://www.halbordnung.de/ontologies/tqc.owl")
            n))
 (defdontfn iri-generate
   "Generate IRIs for the determinist names"

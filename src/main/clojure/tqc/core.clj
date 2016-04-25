@@ -1,13 +1,13 @@
-(ns ^{:doc    "Core definitions for phaseants (continuant profiles/temporally qualified continuants)."
+(ns ^{:doc    "Core definitions for continuant profiles/temporally qualified continuants."
       :author "Niels Grewe"}
- phaseant.core
-  (:require [phaseant.base :as b])
+ tqc.core
+  (:require [tqc.base :as b])
   (:use [tawny.owl]))
 
 (defn- ml "Generates a multi line string" [& strings] (clojure.string/join "\n" strings))
 
 (defontology tqc
-  :iri "http://www.halbordnung.de/ontologies/phaseant.owl"
+  :iri "http://www.halbordnung.de/ontologies/tqc.owl"
   :prefix "tqc:"
   :iri-gen b/iri-generate)
 
@@ -16,7 +16,7 @@
 ;; holder for the new entities
 (defclass xntity
   :label "*entity"
-  :comment "holder type for tqc/phaseant entities")
+  :comment "holder type for tqc entities")
 (defclass phase
   :label "phase"
   :comment (ml "Phases are restricted counterparts of histories. They"
@@ -31,9 +31,9 @@
 
 (as-equivalent phase (owl-some b/part_of_occurrent b/history))
 
-(defclass phas-eant
-  :label "temporally qualified continuant"
-  :comment (ml "A temporally qualified continuant is an analog of a"
+(defclass tq-continuant
+          :label "temporally qualified continuant"
+          :comment (ml "A temporally qualified continuant is an analog of a"
                "process profile in the domain of continuants. Just as"
                "a process having a certain profile implies its being"
                "such and such in a specific structural dimension,"
@@ -49,7 +49,7 @@
  xntity
  :disjoint :cover
  phase
- phas-eant)
+ tq-continuant)
 
 ;; Match the history axiom
 (add-superclass phase (owl-only b/part_of_occurrent (owl-not b/process_profile)))
@@ -58,7 +58,7 @@
   :label "phase of"
   :super b/specifically_depends_on_at_all_times
   :domain phase
-  :range phas-eant
+  :range tq-continuant
   :characteristic :functional)
 
 (defoproperty has-phase
@@ -67,9 +67,9 @@
   :characteristic :inversefunctional)
 (add-subproperty phase-of b/history_of)
 
-(add-superclass phase (owl-some phase-of phas-eant))
+(add-superclass phase (owl-some phase-of tq-continuant))
 
-(add-superclass phas-eant (owl-some has-phase phase))
+(add-superclass tq-continuant (owl-some has-phase phase))
 
 (add-superclass b/material_entity (owl-some b/has_history b/history))
 

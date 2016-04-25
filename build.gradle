@@ -42,14 +42,14 @@ sourceSets {
 }
 
 jar {
-  manifest.attributes("Main-Class": "phaseant.writer")
+  manifest.attributes("Main-Class": "tqc.writer")
 }
 
 uberjar {
 
-    manifest.attributes("Main-Class": "phaseant.writer")
+    manifest.attributes("Main-Class": "tqc.writer")
 }
 
 apply plugin: 'application'
-mainClassName = "phaseant.writer"
+mainClassName = "tqc.writer"
 uberjar.enabled = true

@@ -1,8 +1,8 @@
-(ns phaseant.cq
+(ns tqc.cq
   (:require [tawny.owl :as o]
             [tawny.reasoner :as r]
-            [phaseant.core :as c]
-            [phaseant.base :as b])
+            [tqc.core :as c]
+            [tqc.base :as b])
   [:use clojure.test]
   (:import (org.semanticweb.owlapi.reasoner OWLReasoner)))
 
@@ -28,7 +28,7 @@
   (o/save-ontology to (clojure.core/str (-> m :var meta :name) ".owl") :owl))
 
 (defn writetqc [test]
-  (o/save-ontology c/tqc "phaseant.owl" :owl)
+  (o/save-ontology c/tqc "tqc.owl" :owl)
   (test))
 
 (defn satisfiable? [ontology expr]
