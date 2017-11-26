@@ -47,21 +47,26 @@
                :super "organism")
   (o/disjoint-classes to (list "tooth" "organism"))
   (o/add-superclass to "tooth"
-                    (c/temp to (o/owl-some to b/part_of_continuant_at_all_times "organism")))
+                    (c/temp to o/owl-some b/part_of_continuant_at_all_times "organism"))
+
 
   (o/add-superclass to "human"
-                    (c/temp to (o/! to (o/owl-some to b/has_continuant_part_at_all_times "tooth"))))
+                    (c/temp to o/owl-only b/has_continuant_part_at_all_times (o/owl-not to "tooth")))
   (is (r/consistent? to) "Ontology is consistent")
   (is (satisfiable? to (o/owl-and to "tooth"
-                                  (o/owl-some to c/has-phase (o/owl-some to c/phase-of
-                                                                         (o/! to (o/owl-some to b/part_of_continuant_at_all_times
-                                                                                             "organism"))))))
+                                  (o/owl-some
+                                    to
+                                    c/has-min-tqc
+                                    (o/! to (o/owl-some to
+                                                        b/part_of_continuant_at_all_times
+                                                        (o/owl-some to c/min-tqc-of "organism")))))
+                    )
       "A tooth for which there is a time it is not part of any organism → OK")
   (is (satisfiable? to (o/owl-and to "human"
-                                  (o/owl-some to c/has-phase
-                                              (o/owl-some to c/phase-of
+                                  (o/owl-some to c/has-min-tqc
+                                              (o/owl-some to b/has_continuant_part_at_all_times
                                                           (o/owl-some to
-                                                                      b/has_continuant_part_at_all_times
+                                                                      c/min-tqc-of
                                                                       "tooth")))))
       "A human having teeth at some time → OK"))
 
@@ -75,44 +80,31 @@
   (o/disjoint-classes to (list "green-color" "red-color"))
   (o/owl-class to "apple"
                :super (o/owl-and to b/material_entity
-                                 (c/temp to (o/owl-some to b/has_quality_at_all_times "green-color"))))
+                                 (o/owl-some to c/has-min-tqc (o/owl-some to b/has_quality_at_all_times "green-color"))))
 
   (is (satisfiable? to (o/owl-and to "apple"
-                                  (o/owl-some to c/has-phase (o/owl-some to c/phase-of
-                                                                         (o/owl-only to b/has_quality_at_all_times
-                                                                                     (o/|| to "red-color" (o/! to "color")))))))
-      "An apple that at some time has no othe color than red → OK"))
+                                  (o/owl-some to c/has-min-tqc (o/owl-only to b/has_quality_at_all_times
+                                                                                     (o/|| to "red-color" (o/! to "color"))))))
+      "An apple that at some time has no other color than red → OK"))
 
 (deftest tgr_cp1
   (o/owl-class to "birth"
                :super b/process)
-  (o/owl-class to "vertebrate"
+  (o/owl-class to "mammal"
                :super (o/owl-and to b/material_entity
-                                 (c/temp to (o/owl-some to b/participates_in_at_all_times "birth"))))
+                                 (o/owl-some to c/has-max-tqc
+                                             (o/owl-some to c/has-min-tqc
+                                                         (o/owl-some to b/participates_in_at_all_times "birth")))
+                                 )
+               )
   (.flush ^OWLReasoner (r/reasoner to))
-  (is (satisfiable? to (o/owl-and to "vertebrate"
+  (is (satisfiable? to (o/owl-and to "mammal"
                                   (o/owl-some to c/has-phase
                                               (o/owl-some to c/phase-of
                                                           (o/! to (o/owl-some to
                                                                               b/participates_in_at_all_times
                                                                               "birth"))))))
-      "A vertebrate that at some time does not participate in a birth process → OK"))
-
-(deftest tgr_cp2
-  (o/owl-class to "spermatozoon"
-               :super  b/material_entity)
-  (o/owl-class to "fecundation"
-               :equivalent (o/owl-and to b/process
-                                      (o/owl-some to b/has_occurrent_part
-                                                  (o/owl-some to b/has_participant_at_all_times
-                                                              "spermatozoon"))))
-
-  (is (not (satisfiable? to (o/owl-and to "fecundation"
-                                       (o/owl-not to (o/owl-some to b/has_occurrent_part
-                                                                 (o/owl-some to b/has_participant_at_all_times
-                                                                             "spermatozoon"))))))
-
-      "A fecundation event for which there is never any spermatozoon that participates → owl:Nothing"))
+      "A mammal that at some time does not participate in a birth process → OK"))
 
 (deftest psr_cm+
   (o/owl-class to "brain"
@@ -163,17 +155,9 @@
       ;; Sanity check: Were the probe axioms really removed?
                                            (is (r/consistent? to))
                                            (is (not (satisfiable? to (o/owl-and to ventricle
-                                                                                (o/owl-some to
-                                                                                            c/has-phase
-                                                                                            (o/owl-some to
-                                                                                                        c/phase-of
-                                                                                                        (o/! to
-                                                                                                             (o/owl-some to part-of-brain "brain"))))
-                                                                                (o/owl-some to
-                                                                                            c/has-phase
-                                                                                            (o/owl-some to
-                                                                                                        c/phase-of
-                                                                                                        (o/owl-some to part-of-brain "brain"))))))
+                                                                                (o/! to
+                                                                                     (o/owl-some to part-of-brain "brain"))
+                                                                                (o/owl-some to part-of-brain "brain"))))
                                                "A brain ventricle that is part of a human brain at some time and that is not part of any human brain at another time → owl:Nothing")
 
       ;; We have a third example here but that's essentially negation of the entire scope, so we don't do it.
@@ -193,16 +177,8 @@
                                  (c/perm-spec to (o/exactly to 1 b/has_quality_at_all_times "sex"))))
 
   (is (not (satisfiable? to (o/owl-and to "mammal"
-                                       (o/owl-some to
-                                                   c/has-phase
-                                                   (o/owl-some to
-                                                               c/phase-of
-                                                               (o/owl-some to b/has_quality_at_all_times "male-sex")))
-                                       (o/owl-some to
-                                                   c/has-phase
-                                                   (o/owl-some to
-                                                               c/phase-of
-                                                               (o/owl-some to b/has_quality_at_all_times "female-sex"))))))
+                                       (o/owl-some to b/has_quality_at_all_times "male-sex")
+                                       (o/owl-some to b/has_quality_at_all_times "female-sex"))))
       "A mammal that is biologically male at some time and biologically female at some other time → owl:Nothing"))
 
 (deftest psr_cp1
@@ -229,15 +205,10 @@
 
 ;; PSR_cp2 needs to be reformulated -- it is nonesense as is
 
-
 (deftest pgr_cm+
   (o/owl-class to "oxygen-molecule"
                :super b/material_entity)
   (o/owl-class to "red-blood-cell"
-               :super b/material_entity)
-  (o/owl-class to "tooth"
-               :super b/material_entity)
-  (o/owl-class to "apple"
                :super b/material_entity)
   (o/owl-class to "root-phase"
                :super (o/owl-and to
@@ -245,49 +216,21 @@
                                  (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
                                  (o/! to (o/owl-some to c/phase-of (o/owl-some to b/has_continuant_part_at_all_times
                                                                                "oxygen-molecule")))))
-  (o/owl-class to "root-phase2"
-               :super (o/owl-and to
-                                 c/phase
-                                 (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
-                                 (o/owl-some to c/phase-of (o/owl-some to b/has_continuant_part_at_all_times
-                                                                               "tooth"))))
-  (o/disjoint-classes to (list "oxygen-molecule" "red-blood-cell" "tooth" "apple"))
+  (o/disjoint-classes to (list "oxygen-molecule" "red-blood-cell"))
 
   (o/add-superclass to "red-blood-cell"
-                    (c/perm-gen to "gen_oxygen_phase" (o/owl-some to b/has_continuant_part_at_all_times "oxygen-molecule")))
-
-  (o/add-superclass to "apple"
-                    (c/perm-gen to "gen_apple-tooth_phase" (o/owl-only to
-                                                                       b/has_continuant_part_at_all_times
-                                                                       (o/owl-not to "tooth"))))
-  (let  [cell_history (o/individual to "cell-history"
-                               :type b/history)
-         cell_phase (o/individual to "cell-ph"
-                             :type "root-phase")
-         cell (o/individual to "cell"
-                            :type "red-blood-cell"
-                            :fact (o/fact to b/has_history cell_history))
-         apple_history (o/individual to "apple-history"
-                                     :type b/history)
-         apple (o/individual to "apple"
-                             :type "apple"
-                             :fact (o/fact to b/has_history apple_history))
-         apple_phase (o/individual to "apple-ph"
-                                   :type "root-phase2")
-
-
-         ]
+                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times "oxygen-molecule"))
 
     (o/with-probe-axioms to
-                         [a (o/add-fact to cell_history (o/fact to b/has_proper_occurrent_part cell_phase))]
+                         [a (o/add-subclass to
+                              (o/owl-some to c/min-tqc-of "red-blood-cell")
+                              (o/! to (o/owl-some to b/has_continuant_part_at_all_times
+                                                  (o/owl-some to c/min-tqc-of "oxygen-molecule")))
+                              )]
                          (is (not (r/consistent? to))
                              "There are red blood cells without oxygen molecules → owl:Nothing"))
+)
 
-  (o/with-probe-axioms to
-                       [a (o/add-fact to apple_history (o/fact to b/has_proper_occurrent_part apple_phase))]
-    (is (not (r/consistent? to))
-        "There are apples that have teeth at some time → owl:Nothing")))
-  )
 
 (deftest pgr_cm-
 
@@ -297,30 +240,20 @@
                :super b/material_entity)
 
   (o/add-superclass to "ehr"
-                    (c/perm-gen to "gen_ehr-storage_phase" (o/owl-some to b/inheres_in_at_all_times "storage")))
+                    (c/perm-gen to o/owl-some b/inheres_in_at_all_times "storage"))
 
-  (o/owl-class to "root-phase"
-               :super (o/owl-and to
-                                 c/phase
-                                 (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
-                                 (o/! to (o/owl-some to c/phase-of (o/owl-some to b/inheres_in_at_all_times
-                                                                               "storage")))))
-
-  (let  [history (o/individual to "history"
-                               :type b/history)
-         phase (o/individual to "ph"
-                             :type "root-phase")
-         ehr (o/individual to "EHR"
-                           :type "ehr"
-                           :fact (o/fact to b/has_history history))]
-
+  (.flush ^OWLReasoner (r/reasoner to))
     (is (r/consistent? to)
         "Consistent TQC ontology for EHR (immaterial entity)")
 
     (o/with-probe-axioms to
-      [a (o/add-fact to history (o/fact to b/has_proper_occurrent_part phase))]
+      [a (o/add-subclass to
+                         (o/owl-some to c/min-tqc-of "ehr")
+                         (o/! to (o/owl-some to b/inheres_in_at_all_times
+                                             (o/owl-some to c/min-tqc-of "storage"))))]
       (is (not (r/consistent? to))
-          "There are electronic health records that are not in any computer storage medium → owl:Nothing"))))
+          "There are electronic health records that are not in any computer storage medium → owl:Nothing"))
+  )
 
 (deftest pgr_cp1
 
@@ -330,73 +263,50 @@
                :super b/process)
 
   (o/add-superclass to "organism"
-                    (c/perm-gen to "gen_organism-ecoproc_phase" (o/owl-some to b/participates_in_at_all_times "eco-process")))
-
-  (o/owl-class to "root-phase"
-               :super (o/owl-and to
-                                 c/phase
-                                 (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
-                                 (o/! to (o/owl-some to c/phase-of (o/owl-some to b/participates_in_at_all_times
-                                                                               "eco-process")))))
-
-  (let  [history (o/individual to "history"
-                               :type b/history)
-         phase (o/individual to "ph"
-                             :type "root-phase")
-         joe (o/individual to "joe"
-                           :type "organism"
-                           :fact (o/fact to b/has_history history))]
-
-    (is (r/consistent? to)
-        "Consistent TQC ontology for participation")
-
-    (o/with-probe-axioms to
-      [a (o/add-fact to history (o/fact to b/has_proper_occurrent_part phase))]
-      (is (not (r/consistent? to))
-          "There are organisms that do not participate in any ecologic process at certain times → owl:Nothing"))))
-
-(deftest pgr_cp2
-
-  (o/owl-class to "air-volume"
-               :super b/material_entity)
-  (o/owl-class to "breathing-process"
-               :super b/process)
-
-  (o/add-superclass to "breathing-process" (o/owl-and b/process
-                    (o/owl-or (o/owl-some to b/has_participant_at_all_times "air-volume")
-                              (o/owl-and (o/owl-some to b/has_proper_occurrent_part "breathing-process")
-                                         (o/owl-only to b/has_proper_occurrent_part "breathing-process")
-                              ))
-                    ))
-
-  (o/owl-class to "root-part"
-               :super (o/owl-and to
-                                 b/process
-                                 (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
-                                 (o/! to (o/owl-some to b/has_participant_at_all_times "air-volume"))
-                      )
-               )
-
-  (o/owl-class to "indirect-breathing-process"
-               :super "breathing-process"
-              )
-  (o/add-superclass to "indirect-breathing-process"
-                    (o/! (o/owl-some to b/has_participant_at_all_times "air-volume"))
+                    (o/owl-and to
+                               (o/owl-some to c/has-min-tqc (o/owl-some to b/participates_in_at_all_times "eco-process"))
+                               (o/owl-only to c/has-min-tqc (o/owl-some to b/participates_in_at_all_times "eco-process"))
+                               )
                     )
 
-  (let  [part (o/individual to "part"
-                             :type "root-part")
-         ;; Breath needs to be an indirect breathing process because otherwise we will infer that there must be an
-         ;; air-volume that we didn't mention which participates in the breath process
-         breath (o/individual to "breath"
-                              :type "indirect-breathing-process")
-                             ]
+  (is (r/consistent? to)
+      "Consistent TQC ontology for participation")
 
-    (is (r/consistent? to)
-        "Consistent TQC ontology for process")
-
-    (o/with-probe-axioms to
-      [a (o/add-fact to breath (o/fact to b/has_proper_occurrent_part part))]
+  (o/with-probe-axioms to
+      [a (o/add-subclass to
+                         (o/owl-some to c/min-tqc-of "organism")
+                         (o/! to (o/owl-some to b/participates_in_at_all_times "eco-process")))]
       (is (not (r/consistent? to))
-          "There are parts of breathing processes (in mammals) in which no air volume participates → owl:Nothing"))))
+          "There are organisms that do not participate in any ecologic process at certain times → owl:Nothing"))
+  )
 
+
+(deftest pgr_transitivity
+
+  (o/owl-class to "blood-volume"
+               :super b/material_entity)
+  (o/owl-class to "red-blood-cell"
+               :super b/material_entity)
+  (o/owl-class to "oxygen-molecule"
+               :super b/material_entity)
+
+  (o/disjoint-classes to (list "blood-volume" "red-blood-cell" "oxygen-molecule"))
+
+  (o/add-superclass to "red-blood-cell"
+                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
+                                                                  "oxygen-molecule"))
+
+  (o/add-superclass to "blood-volume"
+                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
+                                                                      "red-blood-cell"))
+  (is (r/consistent? to)
+      "Consistent TQC ontology for transitive permanent generic parthood")
+  (is (not (satisfiable? to
+                         (o/owl-and to
+                                    (o/owl-some to c/min-tqc-of "blood-volume")
+                                    (o/! to (o/owl-some to
+                                                        b/has_continuant_part_at_all_times
+                                                        (o/owl-some to c/min-tqc-of "oxygen-molecule"))))
+                         ))
+                           "There times where a blood volume has no oxygen molecules → owl:Nothing")
+  )

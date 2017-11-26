@@ -18,8 +18,9 @@
   :label "*entity"
   :comment "holder type for tqc entities")
 (defclass phase
-  :label "phase"
-  :comment (ml "Phases are restricted counterparts of histories. They"
+  :label "minimal history fragment"
+  :super b/occurrent
+  :comment (ml "History fragments are restricted counterparts of histories. They"
                "are temporal parts of histories and share the"
                "following characteristics:"
                ""
@@ -27,9 +28,10 @@
                "  * The process sum that makes up the part is the"
                "    totality of all processes taking place in a"
                "    certain spatiotemporal region."
+               "  * For present purposes, the spatiotemporal region"
+               "    they take place in is a 0-dimensional one "
+               "    (they only occur at instants)"
                "  * They pertain to a single entity."))
-
-(as-equivalent phase (owl-some b/part_of_occurrent b/history))
 
 (defclass tq-continuant
           :label "temporally qualified continuant"
@@ -55,23 +57,58 @@
 (add-superclass phase (owl-only b/part_of_occurrent (owl-not b/process_profile)))
 
 (defoproperty phase-of
-  :label "phase of"
+  :label "minimal history fragment of"
   :super b/specifically_depends_on_at_all_times
   :domain phase
   :range tq-continuant
   :characteristic :functional)
 
 (defoproperty has-phase
-  :label "has phase"
+  :label "has minimal history fragment"
   :inverse phase-of
   :characteristic :inversefunctional)
-(add-subproperty phase-of b/history_of)
+
+(as-equivalent phase (owl-and (owl-some b/part_of_occurrent b/history)
+                              (owl-some b/exists_at b/zero-dimensional_temporal_region)))
+
 
 (add-superclass phase (owl-some phase-of tq-continuant))
 
 (add-superclass tq-continuant (owl-some has-phase phase))
 
 (add-superclass b/material_entity (owl-some b/has_history b/history))
+
+
+(defoproperty has-min-tqc
+              :label "has minimal temporally qualified continuant"
+              :domain b/material_entity
+              :comment (ml "The relation between a continuant (of temporally maximal qualification) and one of its minimal ones."
+                            "Since minimally qualified continuants are themselves continuants, they may themselves be in the domain of this relation."
+                            )
+              )
+
+(add-subchain has-min-tqc [b/has_history b/has_occurrent_part phase-of])
+
+(defoproperty min-tqc-of
+              :label "minimal temporally qualified continuant of"
+              :range b/material_entity
+              :inverse has-min-tqc)
+
+(defoproperty has-max-tqc
+              :label "has maximal continuant"
+              :range b/material_entity
+              :comment "the relation between a temporally qualified continuant and a maximal one"
+              )
+
+(add-subchain has-max-tqc [has-phase b/part_of_occurrent b/history_of])
+
+(defoproperty max-tqc-of
+              :label "maximal continuant of"
+              :domain b/material_entity
+              :inverse has-max-tqc)
+
+(add-subproperty min-tqc-of has-max-tqc)
+(add-subproperty has-min-tqc max-tqc-of)
 
 ;; we steal a bit of stuff from tawny.owl to build our generators
 (defmontfn
@@ -85,28 +122,12 @@
   "Returns a restriction on an phase that is scoped as permanently specific"
   #'guess-type-args)
 
-(defmulti phase-temp
-  "Returns a restriction on an phase that is scoped as temporary"
-  #'guess-type-args)
-
 (defmulti perm-spec
   "Returns a restriction on a continuant to be permanently specifically of a type"
   #'guess-type-args)
 
-(defmulti temp
-  "Returns a restriction on a continuant to be temporarily of a type"
-  #'guess-type-args)
 
 (defmethod phase-perm-spec nil [& rest]
-  (apply guess-type-error rest))
-
-(defmethod phase-temp nil [& rest]
-  (apply guess-type-error rest))
-
-(defmethod perm-spec nil [& rest]
-  (apply guess-type-error rest))
-
-(defmethod temp nil [& rest]
   (apply guess-type-error rest))
 
 (defmontfn ophase-perm-spec
@@ -118,19 +139,6 @@
 (defmethod phase-perm-spec :tawny.owl/object [& rest]
   (apply ophase-perm-spec rest))
 
-(defmontfn ophase-temp
-  {:doc      "Returns a restriction on an phase that is scoped as temporary"
-   :arglists '([& clazzes] [ontology & clazzes])}
-  [o class]
-  (owl-and o
-           (owl-some o b/has_occurrent_part (phase-perm-spec o class))
-           (owl-some o b/has_proper_occurrent_part
-                     (owl-and o phase
-                              (owl-not (owl-some b/has_proper_occurrent_part owl-thing))
-                              (phase-perm-spec o class)))))
-
-(defmethod phase-temp :tawny.owl/object [& rest]
-  (apply ophase-temp rest))
 
 (defmontfn object-perm-spec
   {:doc      "Returns a restriction on a continuant that is scoped as permanently specific."
@@ -138,36 +146,31 @@
   [o class]
   (owl-some o b/has_history (phase-perm-spec o class)))
 
-(defmethod perm-spec :tawny.owl/object [& rest]
-  (apply object-perm-spec rest))
+(defn perm-spec
+       [o class]
+       class)
 
-(defmontfn object-temp
-  {:doc      "Returns a restriction on an phase that is scoped as temporary"
-   :arglists '([& clazzes] [ontology & clazzes])}
-  [o class]
-  (owl-some o b/has_history (phase-temp o class)))
+(defn temp
+  [o ctor relation class]
+  (owl-some o
+            has-max-tqc
+            (owl-some o
+                      has-min-tqc
+                      (ctor o
+                            relation
+                            (owl-some o min-tqc-of class)
+                            )
+                      )
+            )
+  )
 
-(defmethod temp :tawny.owl/object [& rest]
-  (apply object-temp rest))
+(defn perm-gen
+  [o ctor relation class]
+  (owl-and
+    (owl-some o has-min-tqc
+              (ctor o relation (owl-some o min-tqc-of class)))
+    (owl-only o has-min-tqc
+              (ctor o relation (owl-some o min-tqc-of class)))
 
-(defmontfn
-  add-phase-perm-gen
-  {:doc      "Adds a phase class representing permanently generic association."
-   :arglists '([name & clazz] [ontology name & clazz])}
-  [o name clazz]
-  (add-subclass o phase name)
-  (add-equivalent o name
-                  (owl-and o (owl-or o (phase-perm-spec o clazz)
-                                     (owl-some o b/has_proper_occurrent_part name))
-                           (owl-only o b/has_proper_occurrent_part name))))
-
-(defmontfn
-  perm-gen
-  {:doc      (ml "Return an axiom representing permanent generic association"
-                 "with the type. Implicitly creates a phase class with the"
-                 "specified name.")
-   :arglists '([name & clazz] [ontology name & clazz])}
-  [o name clazz]
-  (add-phase-perm-gen o name clazz)
-  (owl-some o b/has_history name))
-
+    )
+  )
