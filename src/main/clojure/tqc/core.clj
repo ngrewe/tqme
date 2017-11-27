@@ -15,9 +15,9 @@
 (owl-import b/bfo)
 
 (defclass phase
-  :label "minimal history fragment"
+  :label "minimal history segment"
   :super b/occurrent
-  :comment (ml "History fragments are restricted counterparts of histories. They"
+  :comment (ml "History segments are restricted counterparts of histories. They"
                "are temporal parts of histories and share the"
                "following characteristics:"
                ""
@@ -34,14 +34,14 @@
 (add-superclass phase (owl-only b/part_of_occurrent (owl-not b/process_profile)))
 
 (defoproperty phase-of
-  :label "minimal history fragment of"
+  :label "minimal history segment of"
   :super b/specifically_depends_on_at_all_times
   :domain phase
   :range b/continuant
   :characteristic :functional)
 
 (defoproperty has-phase
-  :label "has minimal history fragment"
+  :label "has minimal history segment"
   :inverse phase-of
   :characteristic :inversefunctional)
 
