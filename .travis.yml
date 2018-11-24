@@ -1,3 +1,12 @@
 language: java
 jdk:
   - openjdk8
+before_deploy: "tar -czf tqme.tar.gz *.owl"
+deploy:
+  provider: releases
+  api_key:
+    secure: VIrrhZFEo7UrLdB8P1OsSf/8y6i+xhDIzuZTx8nStfrxAYDZXZqE41m/+FEO+SaYwN/4RTgmeTg5UPaqUq1DWwXYcyskbItltouRr5M2Wep5ulHjXWWDzFDFJYvFy4u191B6K5+vautHjPFB8a6+4Q5s/z5jdhY6+mxBtdkwOdTAKrFpUvB0xIFIFisZtudVxfNl9jGunZlf+4aoPS1jOL5izzxpfUvnlVkijMfI2sSxK9GS6ib637tTKBVZ0J9+CqWp9jh3TATwjwMRAEAq1XvN3506IxgVhj2pFkSIBYM41Xe8ocArjT5QgsOhzcPJxbz3UfTt1vbs4ih6Fn1xjtZkv/XXrWe85Sw60X58wPvKV5ALVz9TPga1J4AFlF0+ZiflkSxTxi89FEBgnoOCbMVj3H8LVK/YykWwwDCQr9H2NfIUvojjNj1Vb6hmb3CDYz+gpviHGOR2cYwYkPpHYzgEXZYNEJf+300mtPXWwlhqiUzlb5Zz4P14iP4wHwhmvPk7ISF3MCX5sA9VwkS9sTHWvNFW2P+z45p2TLzWQMzh0kHhuZP8fE85drko5tPLkYfNzqCPcQOk9VXNB9qzR24kYMPtYXcor0JsVcTBcac4Ej/SgOIbzFXrCJfuTh+33UWYIF9cNVU/yqIwoeacenV0ERX1crWTZq15bxcbG8Q=
+  file: "tqme.tar.gz"
+  on:
+    tags: true
+    repo: ngrewe/tqme
