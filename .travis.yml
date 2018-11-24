@@ -1,2 +1,3 @@
-language: clojure
-script: ./gradlew test
+language: java
+jdk:
+  - openjdk8
