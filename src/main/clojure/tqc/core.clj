@@ -1,4 +1,4 @@
-(ns ^{:doc    "Core definitions for continuant profiles/temporally qualified continuants."
+(ns ^{:doc    "Core definitions for temporally qualified material entities."
       :author "Niels Grewe"}
  tqc.core
   (:require [tqc.base :as b]
@@ -8,11 +8,21 @@
 (defn- ml "Generates a multi line string" [& strings] (clojure.string/join "\n" strings))
 
 (defontology tqc
-  :iri "http://www.halbordnung.de/ontologies/tqc.owl"
+  :iri "http://www.halbordnung.de/ontologies/tqme.owl"
   :prefix "tqc:"
   :iri-gen b/iri-generate)
 
 (owl-import b/bfo)
+
+(defclass tqme
+  :label "temporally qualified material entity"
+  :super b/independent_continuant
+  :comment (ml "Temporally qualified material entities are material entities"
+               "considered only during a portion of their lifetime."
+  )
+)
+
+(add-superclass b/material_entity tqme)
 
 (defclass phase
   :label "minimal history segment"
@@ -37,7 +47,7 @@
   :label "minimal history segment of"
   :super b/specifically_depends_on_at_all_times
   :domain phase
-  :range b/continuant
+  :range tqme
   :characteristic :functional)
 
 (defoproperty has-phase
@@ -54,30 +64,30 @@
 
 
 (defoproperty has-min-tqc
-              :label "has minimal temporally qualified continuant"
-              :domain b/material_entity
-              :comment (ml "The relation between a continuant (of temporally maximal qualification) and one of its minimal ones."
-                            "Since minimally qualified continuants are themselves continuants, they may themselves be in the domain of this relation."
+              :label "has minimal temporally qualified material entity"
+              :domain tqme
+              :comment (ml "The relation between a material entity (of temporally maximal qualification) and one of its minimal ones."
+                            "Since minimally qualified material entites are themselves material entities, they may themselves be in the domain of this relation."
                             )
               )
 
 (add-subchain has-min-tqc [b/has_history b/has_occurrent_part phase-of])
 
 (defoproperty min-tqc-of
-              :label "minimal temporally qualified continuant of"
+              :label "minimal temporally qualified material entity of"
               :range b/material_entity
               :inverse has-min-tqc)
 
 (defoproperty has-max-tqc
-              :label "has maximal continuant"
+              :label "has maximal material entity"
               :range b/material_entity
-              :comment "the relation between a temporally qualified continuant and a maximal one"
+              :comment "the relation between a temporally qualified material entity and a maximal one"
               )
 
 (add-subchain has-max-tqc [has-phase b/part_of_occurrent b/history_of])
 
 (defoproperty max-tqc-of
-              :label "maximal continuant of"
+              :label "maximal material entity of"
               :domain b/material_entity
               :inverse has-max-tqc)
 
@@ -97,7 +107,7 @@
   #'guess-type-args)
 
 (defmulti perm-spec
-  "Returns a restriction on a continuant to be permanently specifically of a type"
+  "Returns a restriction on a material entity to be permanently specifically of a type"
   #'guess-type-args)
 
 
@@ -115,7 +125,7 @@
 
 
 (defmontfn object-perm-spec
-  {:doc      "Returns a restriction on a continuant that is scoped as permanently specific."
+  {:doc      "Returns a restriction on a material entity that is scoped as permanently specific."
    :arglists '([& clazzes] [ontology & clazzes])}
   [o class]
   (owl-some o b/has_history (phase-perm-spec o class)))
