@@ -9,5 +9,5 @@
   "Entry point for writing the ontology"
   [& args]
 
-  (tawny.owl/save-ontology tqc "tqc.owl" :owl)
-  (tawny.owl/save-ontology tqc "tqc.omn" :omn))
+  (tawny.owl/save-ontology tqc "tqme.owl" :owl)
+  (tawny.owl/save-ontology tqc "tqme.omn" :omn))

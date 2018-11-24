@@ -28,7 +28,7 @@
   (o/save-ontology to (clojure.core/str (-> m :var meta :name) ".owl") :owl))
 
 (defn writetqc [test]
-  (o/save-ontology c/tqc "tqc.owl" :owl)
+  (o/save-ontology c/tqc "tqme.owl" :owl)
   (test))
 
 (defn satisfiable? [ontology expr]
