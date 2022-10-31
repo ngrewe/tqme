@@ -4,3 +4,6 @@ phaseant.iml
 .DS_Store
 /local.properties
 /.idea
+/*.owl
+/catalog-v001.xml
+

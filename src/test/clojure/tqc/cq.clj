@@ -234,25 +234,25 @@
 
 (deftest pgr_cm-
 
-  (o/owl-class to "ehr"
-               :super b/immaterial_entity)
-  (o/owl-class to "storage"
+  (o/owl-class to "apple"
                :super b/material_entity)
+  (o/owl-class to "colour"
+               :super b/quality)
 
-  (o/add-superclass to "ehr"
-                    (c/perm-gen to o/owl-some b/inheres_in_at_all_times "storage"))
+  (o/add-superclass to "apple"
+                    (c/perm-gen to o/owl-some b/has_quality_at_all_times "colour"))
 
   (.flush ^OWLReasoner (r/reasoner to))
     (is (r/consistent? to)
-        "Consistent TQC ontology for EHR (immaterial entity)")
+        "Consistent TQC ontology for apple/colour")
 
     (o/with-probe-axioms to
       [a (o/add-subclass to
-                         (o/owl-some to c/min-tqc-of "ehr")
-                         (o/! to (o/owl-some to b/inheres_in_at_all_times
-                                             (o/owl-some to c/min-tqc-of "storage"))))]
+                         (o/owl-some to c/min-tqc-of "apple")
+                         (o/! to (o/owl-some to b/has_quality_at_all_times
+                                             (o/owl-some to c/min-tqc-of "colour"))))]
       (is (not (r/consistent? to))
-          "There are electronic health records that are not in any computer storage medium → owl:Nothing"))
+          "There are apples without a colour → owl:Nothing"))
   )
 
 (deftest pgr_cp1
