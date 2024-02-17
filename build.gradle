@@ -1,42 +1,35 @@
-buildscript {
-    repositories {
-        maven { url 'http://clojars.org/repo' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'clojuresque:clojuresque:1.7.0'
-    }
+plugins {
+    id 'java'
+    id "dev.clojurephant.clojure" version "0.8.0-beta.7"
+    id "com.github.johnrengelman.shadow"  version "8.1.1"
 }
-
 
 group 'de.halbordnung.ontologies'
 version '1.0.0-SNAPSHOT'
 
-apply plugin: 'java'
-apply plugin: 'clojure'
-
 repositories {
     mavenCentral()
-    maven { url 'http://clojars.org/repo' }
+    maven {
+        name 'Clojars'
+        url 'https://clojars.org/repo'
+    }
 }
-
-clojure.aotCompile = true
 
 dependencies {
-    compile 'org.clojure:clojure:1.8.0'
-    compile 'uk.org.russet:tawny-owl:1.4.0'
-    compile 'danlentz:clj-uuid:0.1.6'
+    implementation 'org.clojure:clojure:1.11.1'
+    testRuntimeOnly 'dev.clojurephant:jovial:0.4.2'
+    devImplementation 'org.clojure:tools.namespace:1.3.0'
+    implementation 'uk.org.russet:tawny-owl:1.4.0'
+    implementation 'danlentz:clj-uuid:0.1.6'
 }
 
-sourceSets {
-    main {
-        clojure {
-            srcDirs = ["src/main/clojure", "src/main/resources"]
-        }
-    }
-    test {
-        clojure {
-            srcDirs = ["src/test/clojure", "src/main/resources"]
+clojure {
+    builds {
+        main {
+            aotNamespaces.add('tqc.base')
+            aotNamespaces.add('tqc.core')
+            aotNamespaces.add('tqc.writer')
+            reflection = 'warn'
         }
     }
 }
@@ -45,11 +38,17 @@ jar {
   manifest.attributes("Main-Class": "tqc.writer")
 }
 
-uberjar {
-
-    manifest.attributes("Main-Class": "tqc.writer")
+shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(sourceSets["test"].output)
+    archiveBaseName.set("tqc")
+    mergeServiceFiles()
+    manifest {
+        attributes("Main-Class": "tqc.writer")
+    }
 }
 
-apply plugin: 'application'
-mainClassName = "tqc.writer"
-uberjar.enabled = true
+tasks.withType(Test) {
+  useJUnitPlatform()
+}
+
