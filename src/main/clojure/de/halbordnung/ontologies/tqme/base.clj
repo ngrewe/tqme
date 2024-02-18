@@ -4,7 +4,7 @@
   (:require [clj-uuid :as uuid]
             [tawny.read :as r]
             [tawny.memorise]
-            [tawny.owl])
+            [tawny.owl :as o])
   (:use tawny.owl)
   (:import (org.semanticweb.owlapi.model IRI OWLOntology)))
 
@@ -17,7 +17,7 @@
   ; The namespace here must be kept as is in order to keep IRIs stable
   (uuid/v5 (uuid/v5 uuid/+namespace-url+ "http://www.halbordnung.de/ontologies/tqc.owl")
            n))
-(defdontfn iri-generate
+(o/defno iri-generate
   "Generate IRIs for the determinist names"
   [o name]
   (iri (str (.getOntologyIRI (.getOntologyID ^OWLOntology o)) "#" (-scoped name))))
@@ -26,12 +26,10 @@
   :location (resource-iri)
   :prefix "bfo"
   :iri bfo-iri
-  :viri "http://purl.obolibrary.org/obo/bfo/2014-05-03/bfo.owl"
+  :viri "http://purl.obolibrary.org/obo/bfo/2020/bfo.owl"
   :filter
   (clojure.core/partial tawny.read/iri-starts-with-filter "http://purl.obolibrary.org/obo/BFO")
   :transform
   (clojure.core/comp r/stop-characters-transform
                      r/exception-nil-label-transform))
-
-(tawny.memorise/remember (clojure.java.io/resource "bfo_memo.clj"))
-
+(tawny.memorise/remember bfo (clojure.java.io/resource "bfo_memo.clj"))

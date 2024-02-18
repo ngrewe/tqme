@@ -22,7 +22,7 @@
   )
 )
 
-(add-superclass b/material_entity tqme)
+(add-superclass tqme-ontology b/material_entity tqme)
 
 (defclass phase
   :label "minimal history segment"
@@ -40,12 +40,9 @@
                "    (they only occur at instants)"
                "  * They pertain to a single entity."))
 
-;; Match the history axiom
-(add-superclass phase (owl-only b/part_of_occurrent (owl-not b/process_profile)))
-
 (defoproperty phase-of
   :label "minimal history segment of"
-  :super b/specifically_depends_on_at_all_times
+  :super b/specifically_depends_on
   :domain phase
   :range tqme
   :characteristic :functional)
@@ -55,12 +52,12 @@
   :inverse phase-of
   :characteristic :inversefunctional)
 
-(as-equivalent phase (owl-and (owl-some b/part_of_occurrent b/history)
+(as-equivalent phase (owl-and (owl-some b/occurrent_part_of b/history)
                               (owl-some b/exists_at b/zero-dimensional_temporal_region)))
 
-(add-superclass phase (owl-some phase-of o/owl-thing))
+(add-superclass tqme-ontology phase (owl-some phase-of o/owl-thing))
 
-(add-superclass b/material_entity (owl-some b/has_history b/history))
+(add-superclass tqme-ontology b/material_entity (owl-some b/has_history b/history))
 
 
 (defoproperty has-min-tqme
@@ -71,7 +68,7 @@
                             )
               )
 
-(add-subchain has-min-tqme [b/has_history b/has_occurrent_part phase-of])
+(add-subchain tqme-ontology has-min-tqme [b/has_history b/has_occurrent_part phase-of])
 
 (defoproperty min-tqme-of
               :label "minimal temporally qualified material entity of"
@@ -84,23 +81,47 @@
               :comment "the relation between a temporally qualified material entity and a maximal one"
               )
 
-(add-subchain has-max-tqme [has-phase b/part_of_occurrent b/history_of])
+(add-subchain tqme-ontology has-max-tqme [has-phase b/occurrent_part_of b/history_of])
 
 (defoproperty max-tqme-of
               :label "maximal material entity of"
               :domain b/material_entity
               :inverse has-max-tqme)
 
-(add-subproperty min-tqme-of has-max-tqme)
-(add-subproperty has-min-tqme max-tqme-of)
+(add-subproperty tqme-ontology min-tqme-of has-max-tqme)
+(add-subproperty tqme-ontology has-min-tqme max-tqme-of)
 
 ;; we steal a bit of stuff from tawny.owl to build our generators
-(defmontfn
+(defn
   guess-type-args
-  {:doc     "Broadcasting version of guess-type"
+  {:doc  "Broadcasting version of guess-type"
    :private true}
-  [o & args]
-  (guess-type o args))
+  ;; unwind to avoid variadic args for the most common calls.
+  ([a]
+   (guess-type a))
+  ([a b]
+   (or
+     (guess-type a)
+     (guess-type b)))
+  ([a b c]
+   (or
+     (guess-type a)
+     (guess-type b)
+     (guess-type c)))
+  ([a b c d]
+   (or
+     (guess-type a)
+     (guess-type b)
+     (guess-type c)
+     (guess-type d)))
+  ([a b c d & args]
+   (or
+     (guess-type a)
+     (guess-type b)
+     (guess-type c)
+     (guess-type d)
+     ;; guess-type already copes with collections
+     (guess-type args))))
 
 (defmulti phase-perm-spec
   "Returns a restriction on an phase that is scoped as permanently specific"
@@ -114,21 +135,21 @@
 (defmethod phase-perm-spec nil [& rest]
   (apply guess-type-error rest))
 
-(defmontfn ophase-perm-spec
+(defno ophase-perm-spec
   {:doc      "Returns a restriction on an phase that is scoped as permanently specific."
    :arglists '([& clazzes] [ontology & clazzes])}
   [o class]
-  (owl-some o phase-of class))
+  (owl-some phase-of class))
 
 (defmethod phase-perm-spec :tawny.owl/object [& rest]
   (apply ophase-perm-spec rest))
 
 
-(defmontfn object-perm-spec
+(defno object-perm-spec
   {:doc      "Returns a restriction on a material entity that is scoped as permanently specific."
    :arglists '([& clazzes] [ontology & clazzes])}
   [o class]
-  (owl-some o b/has_history (phase-perm-spec o class)))
+  (owl-some b/has_history (phase-perm-spec o class)))
 
 (defn perm-spec
        [o class]
@@ -136,13 +157,13 @@
 
 (defn temp
   [o ctor relation class]
-  (owl-some o
+  (owl-some
             has-max-tqme
-            (owl-some o
+            (owl-some
                       has-min-tqme
-                      (ctor o
+                      (ctor
                             relation
-                            (owl-some o min-tqme-of class)
+                            (owl-some min-tqme-of class)
                             )
                       )
             )
@@ -151,10 +172,10 @@
 (defn perm-gen
   [o ctor relation class]
   (owl-and
-    (owl-some o has-min-tqme
-              (ctor o relation (owl-some o min-tqme-of class)))
-    (owl-only o has-min-tqme
-              (ctor o relation (owl-some o min-tqme-of class)))
+    (owl-some has-min-tqme
+              (ctor relation (owl-some min-tqme-of class)))
+    (owl-only has-min-tqme
+              (ctor relation (owl-some min-tqme-of class)))
 
     )
   )

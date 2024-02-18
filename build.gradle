@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.clojure:clojure:1.11.1'
     testRuntimeOnly 'dev.clojurephant:jovial:0.4.2'
     devImplementation 'org.clojure:tools.namespace:1.3.0'
-    implementation 'uk.org.russet:tawny-owl:1.4.0'
+    implementation 'uk.org.russet:tawny-owl:2.3.3'
     implementation 'danlentz:clj-uuid:0.1.6'
 }
 

@@ -41,35 +41,34 @@
 (use-fixtures :once write-tqme)
 
 (deftest tgr_cm+
-  (o/owl-class to "tooth"
-               :super b/material_entity)
-  (o/owl-class to "organism"
-               :super b/material_entity)
-  (o/owl-class to "human"
-               :super "organism")
-  (o/disjoint-classes to (list "tooth" "organism"))
-  (o/add-superclass to "tooth"
-                    (c/temp to o/owl-some b/part_of_continuant_at_all_times "organism"))
+  (def tooth (o/owl-class to "tooth"
+               :super b/material_entity))
+  (def organism (o/owl-class to "organism"
+               :super b/material_entity))
+  (def human (o/owl-class to "human"
+               :super organism))
+  (o/disjoint-classes to (list tooth organism))
+  (o/add-superclass to tooth
+                    (c/temp to o/owl-some b/continuant_part_of_at_all_times organism))
 
 
-  (o/add-superclass to "human"
-                    (c/temp to o/owl-only b/has_continuant_part_at_all_times (o/owl-not to "tooth")))
+  (o/add-superclass to human
+                    (c/temp to o/owl-only b/has_continuant_part_at_all_times (o/owl-not tooth)))
   (is (r/consistent? to) "Ontology is consistent")
-  (is (satisfiable? to (o/owl-and to "tooth"
+  (is (satisfiable? to (o/owl-and tooth
                                   (o/owl-some
-                                    to
                                     c/has-min-tqme
-                                    (o/! to (o/owl-some to
-                                                        b/part_of_continuant_at_all_times
-                                                        (o/owl-some to c/min-tqme-of "organism")))))
+                                    (o/! (o/owl-some
+                                                        b/continuant_part_of_at_all_times
+                                                        (o/owl-some c/min-tqme-of organism)))))
                     )
       "A tooth for which there is a time it is not part of any organism → OK")
-  (is (satisfiable? to (o/owl-and to "human"
-                                  (o/owl-some to c/has-min-tqme
-                                              (o/owl-some to b/has_continuant_part_at_all_times
-                                                          (o/owl-some to
+  (is (satisfiable? to (o/owl-and human
+                                  (o/owl-some c/has-min-tqme
+                                              (o/owl-some b/has_continuant_part_at_all_times
+                                                          (o/owl-some
                                                                       c/min-tqme-of
-                                                                      "tooth")))))
+                                                                      tooth)))))
       "A human having teeth at some time → OK"))
 
 (deftest tgr_cm-
@@ -82,9 +81,9 @@
   (o/disjoint-classes to (list "green-color" "red-color"))
   (o/owl-class to "apple"
                :super (o/owl-and to b/material_entity
-                                 (o/owl-some to c/has-min-tqme (o/owl-some to b/has_quality_at_all_times "green-color"))))
+                                 (o/owl-some to c/has-min-tqme (o/owl-some to b/specifically_depended_on_by "green-color"))))
   (is (satisfiable? to (o/owl-and to "apple"
-                                  (o/owl-some to c/has-min-tqme (o/owl-only to b/has_quality_at_all_times
+                                  (o/owl-some to c/has-min-tqme (o/owl-only to b/specifically_depended_on_by
                                                                                      (o/|| to "red-color" (o/! to "color"))))))
       "An apple that at some time has no other color than red → OK"))
 
@@ -116,7 +115,7 @@
                                                                         :characteristic :functional)
 
                                            part-of-brain (o/object-property to "part-of-brain"
-                                                                            :super b/part_of_continuant_at_all_times
+                                                                            :super b/continuant_part_of_at_all_times
                                                                             :domain "brain"
                                                                             :characteristic :inversefunctional)
                                            ventricle (o/owl-class to "ventricle"
@@ -175,11 +174,11 @@
   (o/disjoint-classes to (list "male-sex" "female-sex"))
   (o/owl-class to "mammal"
                :super (o/owl-and to b/material_entity
-                                 (c/perm-spec to (o/exactly to 1 b/has_quality_at_all_times "sex"))))
+                                 (c/perm-spec to (o/exactly to 1 b/specifically_depended_on_by "sex"))))
 
   (is (not (satisfiable? to (o/owl-and to "mammal"
-                                       (o/owl-some to b/has_quality_at_all_times "male-sex")
-                                       (o/owl-some to b/has_quality_at_all_times "female-sex"))))
+                                       (o/owl-some to b/specifically_depended_on_by "male-sex")
+                                       (o/owl-some to b/specifically_depended_on_by "female-sex"))))
       "A mammal that is biologically male at some time and biologically female at some other time → owl:Nothing"))
 
 (deftest psr_cp1
@@ -241,7 +240,7 @@
                :super b/quality)
 
   (o/add-superclass to "apple"
-                    (c/perm-gen to o/owl-some b/has_quality_at_all_times "colour"))
+                    (c/perm-gen to o/owl-some b/specifically_depended_on_by "colour"))
 
   (.flush ^OWLReasoner (r/reasoner to))
     (is (r/consistent? to)
@@ -250,7 +249,7 @@
     (o/with-probe-axioms to
       [a (o/add-subclass to
                          (o/owl-some to c/min-tqme-of "apple")
-                         (o/! to (o/owl-some to b/has_quality_at_all_times
+                         (o/! to (o/owl-some to b/specifically_depended_on_by
                                              (o/owl-some to c/min-tqme-of "colour"))))]
       (is (not (r/consistent? to))
           "There are apples without a colour → owl:Nothing"))
