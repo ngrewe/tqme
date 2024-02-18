@@ -13,6 +13,7 @@
   :iri-gen b/iri-generate)
 
 (owl-import b/bfo)
+(owl-import b/tawny)
 
 (defclass tqme
   :label "temporally qualified material entity"
