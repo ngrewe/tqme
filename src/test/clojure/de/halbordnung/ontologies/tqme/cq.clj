@@ -6,7 +6,7 @@
             [clojure.test]
             )
   [:use clojure.test]
-  (:import (org.semanticweb.owlapi.reasoner OWLReasoner)))
+  (:import (org.semanticweb.owlapi.reasoner InconsistentOntologyException OWLReasoner)))
 
 (def to nil)
 (defn createtestontology []
@@ -35,7 +35,11 @@
 
 (defn satisfiable? [ontology expr]
   (.flush ^OWLReasoner (r/reasoner ontology))
-  (.isSatisfiable ^OWLReasoner (r/reasoner ontology) expr))
+  (try
+    (.isSatisfiable ^OWLReasoner (r/reasoner ontology) expr)
+    (catch InconsistentOntologyException e false)
+    )
+  )
 
 (use-fixtures :each tqme-fixture)
 (use-fixtures :once write-tqme)
@@ -108,57 +112,58 @@
       "A mammal that at some time does not participate in a birth process → OK"))
 
 (deftest psr_cm+
-  (o/owl-class to "brain"
-               :super b/material_entity) (let
-                                          [has-brain (o/object-property to "has-brain"
-                                                                        :super b/has_continuant_part_at_all_times
-                                                                        :range "brain"
-                                                                        :characteristic :functional)
+  (def brain (o/owl-class to "brain"
+               :super b/material_entity)) (let
+                                              [has-brain (o/object-property to "has-brain"
+                                                                            :super b/has_continuant_part_at_all_times
+                                                                            :range brain
+                                                                            :characteristic :functional)
 
-                                           part-of-brain (o/object-property to "part-of-brain"
-                                                                            :super b/continuant_part_of_at_all_times
-                                                                            :domain "brain"
-                                                                            :characteristic :inversefunctional)
-                                           ventricle (o/owl-class to "ventricle"
-                                                                  :super (o/owl-and to b/material_entity
-                                                                                    (c/perm-spec to (o/owl-some to part-of-brain "brain")))) human (o/owl-class to "human"
-                                                                                                                                                                :super (o/owl-and to b/material_entity
-                                                                                                                                                                                  (c/perm-spec to (o/owl-some to has-brain "brain"))))
+                                               part-of-brain (o/object-property to "part-of-brain"
+                                                                                :super b/continuant_part_of_at_all_times
+                                                                                :range brain
+                                                                                :characteristic :inversefunctional)
+                                               ventricle (o/owl-class to "ventricle"
+                                                                      :super (o/owl-and b/material_entity
+                                                                                        (c/perm-spec to (o/owl-some part-of-brain brain))))
+                                               human (o/owl-class to "human"
+                                                                  :super (o/owl-and b/material_entity
+                                                                                    (c/perm-spec to (o/owl-some has-brain brain))))
 
-                                           joes-brain (o/individual to "joes-brain"
-                                                                    :type "brain")
+                                               joes-brain (o/individual to "joes-brain"
+                                                                        :type brain)
 
-                                           other-brain (o/individual to "other-brain"
-                                                                     :type "brain"
-                                                                     :different joes-brain)
+                                               other-brain (o/individual to "other-brain"
+                                                                         :type brain
+                                                                         :different joes-brain)
 
-                                           joe (o/individual to "joe"
-                                                             :type human
-                                                             :fact (o/fact to has-brain joes-brain))
+                                               joe (o/individual to "joe"
+                                                                 :type human
+                                                                 :fact (o/fact has-brain joes-brain))
 
-                                           p1 (o/individual to "phase1"
-                                                            :type c/phase
-                                                            :fact (o/fact to c/phase-of joe))
-                                           mrx (o/individual to "mrx"
-                                                             :fact (o/fact to c/has-phase p1)
-                                                             :comment "Mr X should in fact be identical with Joe")
+                                              p1 (o/individual to "phase1"
+                                                                :type c/phase
+                                                                :fact (o/fact c/phase-of joe))
+                                               mrx (o/individual to "mrx"
+                                                                 :fact (o/fact c/has-phase p1)
+                                                                 :comment "Mr X should in fact be identical with Joe")
 
-                                           error-fact (o/fact to has-brain other-brain)]
+                                            ]
                                            (is (r/consistent? to)
                                                "Consistent before bad axiom")
 
                                            (o/with-probe-axioms to
-                                             [a (o/add-fact to mrx error-fact)]
+                                             (o/add-fact to mrx (o/fact has-brain other-brain))
 
                                              (is (not (r/consistent? to))
                                                  "There is a time in which Joe does not have his original brain → owl:Nothing"))
 
       ;; Sanity check: Were the probe axioms really removed?
                                            (is (r/consistent? to))
-                                           (is (not (satisfiable? to (o/owl-and to ventricle
-                                                                                (o/! to
-                                                                                     (o/owl-some to part-of-brain "brain"))
-                                                                                (o/owl-some to part-of-brain "brain"))))
+                                           (is (not (satisfiable? to (o/owl-and ventricle
+                                                                                (o/!
+                                                                                     (o/owl-some  part-of-brain brain))
+                                                                                (o/owl-some  part-of-brain brain))))
                                                "A brain ventricle that is part of a human brain at some time and that is not part of any human brain at another time → owl:Nothing")
 
       ;; We have a third example here but that's essentially negation of the entire scope, so we don't do it.
