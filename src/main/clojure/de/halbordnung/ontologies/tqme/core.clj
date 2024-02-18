@@ -43,7 +43,6 @@
 
 (defoproperty phase-of
   :label "minimal history segment of"
-  :super b/specifically_depends_on
   :domain phase
   :range tqme
   :characteristic :functional)
