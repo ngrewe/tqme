@@ -72,38 +72,39 @@
       "A human having teeth at some time → OK"))
 
 (deftest tgr_cm-
-  (o/owl-class to "color"
-               :super b/quality)
-  (o/owl-class to "red-color"
-               :super "color")
-  (o/owl-class to "green-color"
-               :super "color")
-  (o/disjoint-classes to (list "green-color" "red-color"))
-  (o/owl-class to "apple"
-               :super (o/owl-and to b/material_entity
-                                 (o/owl-some to c/has-min-tqme (o/owl-some to b/specifically_depended_on_by "green-color"))))
-  (is (satisfiable? to (o/owl-and to "apple"
-                                  (o/owl-some to c/has-min-tqme (o/owl-only to b/specifically_depended_on_by
-                                                                                     (o/|| to "red-color" (o/! to "color"))))))
+  (def color (o/owl-class to "color"
+               :super b/quality))
+  (def red-color (o/owl-class to "red-color"
+               :super color))
+  (def green-color (o/owl-class to "green-color"
+               :super color))
+  (o/disjoint-classes to (list green-color red-color))
+  (def apple (o/owl-class to "apple"
+               :super (o/owl-and b/material_entity
+                                 (o/owl-some c/has-min-tqme (o/owl-some b/specifically_depended_on_by green-color)))))
+  (is (satisfiable? to (o/owl-and apple
+                                  (o/owl-some c/has-min-tqme (o/owl-only b/specifically_depended_on_by
+                                                                                     (o/|| red-color (o/! color))))))
       "An apple that at some time has no other color than red → OK"))
 
 (deftest tgr_cp1
-  (o/owl-class to "birth"
-               :super b/process)
-  (o/owl-class to "mammal"
-               :super (o/owl-and to b/material_entity
-                                 (o/owl-some to c/has-max-tqme
-                                             (o/owl-some to c/has-min-tqme
-                                                         (o/owl-some to b/participates_in_at_all_times "birth")))
-                                 )
-               )
+  (def birth (o/owl-class to "birth"
+               :super b/process))
+  (def mammal (o/owl-class to "mammal"
+                    :super (o/owl-and b/material_entity
+                                      (o/owl-some c/has-max-tqme
+                                                  (o/owl-some c/has-min-tqme
+                                                              (o/owl-some b/participates_in_at_all_times birth)))
+                                      )
+                    )
+    )
   (.flush ^OWLReasoner (r/reasoner to))
-  (is (satisfiable? to (o/owl-and to "mammal"
-                                  (o/owl-some to c/has-phase
-                                              (o/owl-some to c/phase-of
-                                                          (o/! to (o/owl-some to
+  (is (satisfiable? to (o/owl-and mammal
+                                  (o/owl-some c/has-max-tqme
+                                              (o/owl-some c/has-min-tqme
+                                                          (o/! (o/owl-some
                                                                               b/participates_in_at_all_times
-                                                                              "birth"))))))
+                                                                              birth))))))
       "A mammal that at some time does not participate in a birth process → OK"))
 
 (deftest psr_cm+
