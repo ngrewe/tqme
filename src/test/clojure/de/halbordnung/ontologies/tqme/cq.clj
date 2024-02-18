@@ -1,8 +1,10 @@
-(ns tqc.cq
+(ns de.halbordnung.ontologies.tqme.cq
   (:require [tawny.owl :as o]
             [tawny.reasoner :as r]
-            [tqc.core :as c]
-            [tqc.base :as b])
+            [de.halbordnung.ontologies.tqme.core :as c]
+            [de.halbordnung.ontologies.tqme.base :as b]
+            [clojure.test]
+            )
   [:use clojure.test]
   (:import (org.semanticweb.owlapi.reasoner OWLReasoner)))
 
@@ -15,28 +17,28 @@
       :iri "http://iri/"
       :prefix "iri:"))))
 
-(defn tqcfixture [test]
+(defn tqme-fixture [test]
   (binding
    [r/*reasoner-progress-monitor*
     (atom r/reasoner-progress-monitor-silent)]
     (tawny.reasoner/reasoner-factory :hermit)
     (createtestontology)
-    (o/owl-import to c/tqc)
+    (o/owl-import to c/tqme-ontology)
     (test)))
 
-(defmethod report :end-test-var [m]
+(defmethod clojure.test/report :end-test-var [m]
   (o/save-ontology to (clojure.core/str (-> m :var meta :name) ".owl") :owl))
 
-(defn writetqc [test]
-  (o/save-ontology c/tqc "tqme.owl" :owl)
+(defn write-tqme [test]
+  (o/save-ontology c/tqme-ontology "tqme.owl" :owl)
   (test))
 
 (defn satisfiable? [ontology expr]
   (.flush ^OWLReasoner (r/reasoner ontology))
   (.isSatisfiable ^OWLReasoner (r/reasoner ontology) expr))
 
-(use-fixtures :each tqcfixture)
-(use-fixtures :once writetqc)
+(use-fixtures :each tqme-fixture)
+(use-fixtures :once write-tqme)
 
 (deftest tgr_cm+
   (o/owl-class to "tooth"
@@ -56,17 +58,17 @@
   (is (satisfiable? to (o/owl-and to "tooth"
                                   (o/owl-some
                                     to
-                                    c/has-min-tqc
+                                    c/has-min-tqme
                                     (o/! to (o/owl-some to
                                                         b/part_of_continuant_at_all_times
-                                                        (o/owl-some to c/min-tqc-of "organism")))))
+                                                        (o/owl-some to c/min-tqme-of "organism")))))
                     )
       "A tooth for which there is a time it is not part of any organism → OK")
   (is (satisfiable? to (o/owl-and to "human"
-                                  (o/owl-some to c/has-min-tqc
+                                  (o/owl-some to c/has-min-tqme
                                               (o/owl-some to b/has_continuant_part_at_all_times
                                                           (o/owl-some to
-                                                                      c/min-tqc-of
+                                                                      c/min-tqme-of
                                                                       "tooth")))))
       "A human having teeth at some time → OK"))
 
@@ -80,10 +82,9 @@
   (o/disjoint-classes to (list "green-color" "red-color"))
   (o/owl-class to "apple"
                :super (o/owl-and to b/material_entity
-                                 (o/owl-some to c/has-min-tqc (o/owl-some to b/has_quality_at_all_times "green-color"))))
-
+                                 (o/owl-some to c/has-min-tqme (o/owl-some to b/has_quality_at_all_times "green-color"))))
   (is (satisfiable? to (o/owl-and to "apple"
-                                  (o/owl-some to c/has-min-tqc (o/owl-only to b/has_quality_at_all_times
+                                  (o/owl-some to c/has-min-tqme (o/owl-only to b/has_quality_at_all_times
                                                                                      (o/|| to "red-color" (o/! to "color"))))))
       "An apple that at some time has no other color than red → OK"))
 
@@ -92,8 +93,8 @@
                :super b/process)
   (o/owl-class to "mammal"
                :super (o/owl-and to b/material_entity
-                                 (o/owl-some to c/has-max-tqc
-                                             (o/owl-some to c/has-min-tqc
+                                 (o/owl-some to c/has-max-tqme
+                                             (o/owl-some to c/has-min-tqme
                                                          (o/owl-some to b/participates_in_at_all_times "birth")))
                                  )
                )
@@ -223,9 +224,9 @@
 
     (o/with-probe-axioms to
                          [a (o/add-subclass to
-                              (o/owl-some to c/min-tqc-of "red-blood-cell")
+                              (o/owl-some to c/min-tqme-of "red-blood-cell")
                               (o/! to (o/owl-some to b/has_continuant_part_at_all_times
-                                                  (o/owl-some to c/min-tqc-of "oxygen-molecule")))
+                                                  (o/owl-some to c/min-tqme-of "oxygen-molecule")))
                               )]
                          (is (not (r/consistent? to))
                              "There are red blood cells without oxygen molecules → owl:Nothing"))
@@ -244,13 +245,13 @@
 
   (.flush ^OWLReasoner (r/reasoner to))
     (is (r/consistent? to)
-        "Consistent TQC ontology for apple/colour")
+        "Consistent TQME ontology for apple/colour")
 
     (o/with-probe-axioms to
       [a (o/add-subclass to
-                         (o/owl-some to c/min-tqc-of "apple")
+                         (o/owl-some to c/min-tqme-of "apple")
                          (o/! to (o/owl-some to b/has_quality_at_all_times
-                                             (o/owl-some to c/min-tqc-of "colour"))))]
+                                             (o/owl-some to c/min-tqme-of "colour"))))]
       (is (not (r/consistent? to))
           "There are apples without a colour → owl:Nothing"))
   )
@@ -264,17 +265,17 @@
 
   (o/add-superclass to "organism"
                     (o/owl-and to
-                               (o/owl-some to c/has-min-tqc (o/owl-some to b/participates_in_at_all_times "eco-process"))
-                               (o/owl-only to c/has-min-tqc (o/owl-some to b/participates_in_at_all_times "eco-process"))
+                               (o/owl-some to c/has-min-tqme (o/owl-some to b/participates_in_at_all_times "eco-process"))
+                               (o/owl-only to c/has-min-tqme (o/owl-some to b/participates_in_at_all_times "eco-process"))
                                )
                     )
 
   (is (r/consistent? to)
-      "Consistent TQC ontology for participation")
+      "Consistent TQME ontology for participation")
 
   (o/with-probe-axioms to
       [a (o/add-subclass to
-                         (o/owl-some to c/min-tqc-of "organism")
+                         (o/owl-some to c/min-tqme-of "organism")
                          (o/! to (o/owl-some to b/participates_in_at_all_times "eco-process")))]
       (is (not (r/consistent? to))
           "There are organisms that do not participate in any ecologic process at certain times → owl:Nothing"))
@@ -300,13 +301,13 @@
                     (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
                                                                       "red-blood-cell"))
   (is (r/consistent? to)
-      "Consistent TQC ontology for transitive permanent generic parthood")
+      "Consistent TQME ontology for transitive permanent generic parthood")
   (is (not (satisfiable? to
                          (o/owl-and to
-                                    (o/owl-some to c/min-tqc-of "blood-volume")
+                                    (o/owl-some to c/min-tqme-of "blood-volume")
                                     (o/! to (o/owl-some to
                                                         b/has_continuant_part_at_all_times
-                                                        (o/owl-some to c/min-tqc-of "oxygen-molecule"))))
+                                                        (o/owl-some to c/min-tqme-of "oxygen-molecule"))))
                          ))
                            "There times where a blood volume has no oxygen molecules → owl:Nothing")
   )

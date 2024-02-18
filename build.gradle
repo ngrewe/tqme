@@ -26,25 +26,25 @@ dependencies {
 clojure {
     builds {
         main {
-            aotNamespaces.add('tqc.base')
-            aotNamespaces.add('tqc.core')
-            aotNamespaces.add('tqc.writer')
+            aotNamespaces.add('de.halbordnung.ontologies.tqme.base')
+            aotNamespaces.add('de.halbordnung.ontologies.tqme.core')
+            aotNamespaces.add('de.halbordnung.ontologies.tqme.writer')
             reflection = 'warn'
         }
     }
 }
 
 jar {
-  manifest.attributes("Main-Class": "tqc.writer")
+  manifest.attributes("Main-Class": "de.halbordnung.ontologies.tqme.writer")
 }
 
 shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(sourceSets["test"].output)
-    archiveBaseName.set("tqc")
+    archiveBaseName.set("tqme")
     mergeServiceFiles()
     manifest {
-        attributes("Main-Class": "tqc.writer")
+        attributes("Main-Class": "de.halbordnung.ontologies.tqme.writer")
     }
 }
 

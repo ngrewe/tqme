@@ -1,15 +1,15 @@
 (ns ^{:doc    "Core definitions for temporally qualified material entities."
       :author "Niels Grewe"}
- tqc.core
-  (:require [tqc.base :as b]
+ de.halbordnung.ontologies.tqme.core
+  (:require [de.halbordnung.ontologies.tqme.base :as b]
             [tawny.owl :as o])
   (:use [tawny.owl]))
 
 (defn- ml "Generates a multi line string" [& strings] (clojure.string/join "\n" strings))
 
-(defontology tqc
+(defontology tqme-ontology
   :iri "http://www.halbordnung.de/ontologies/tqme.owl"
-  :prefix "tqc:"
+  :prefix "tqme:"
   :iri-gen b/iri-generate)
 
 (owl-import b/bfo)
@@ -63,7 +63,7 @@
 (add-superclass b/material_entity (owl-some b/has_history b/history))
 
 
-(defoproperty has-min-tqc
+(defoproperty has-min-tqme
               :label "has minimal temporally qualified material entity"
               :domain tqme
               :comment (ml "The relation between a material entity (of temporally maximal qualification) and one of its minimal ones."
@@ -71,28 +71,28 @@
                             )
               )
 
-(add-subchain has-min-tqc [b/has_history b/has_occurrent_part phase-of])
+(add-subchain has-min-tqme [b/has_history b/has_occurrent_part phase-of])
 
-(defoproperty min-tqc-of
+(defoproperty min-tqme-of
               :label "minimal temporally qualified material entity of"
               :range b/material_entity
-              :inverse has-min-tqc)
+              :inverse has-min-tqme)
 
-(defoproperty has-max-tqc
+(defoproperty has-max-tqme
               :label "has maximal material entity"
               :range b/material_entity
               :comment "the relation between a temporally qualified material entity and a maximal one"
               )
 
-(add-subchain has-max-tqc [has-phase b/part_of_occurrent b/history_of])
+(add-subchain has-max-tqme [has-phase b/part_of_occurrent b/history_of])
 
-(defoproperty max-tqc-of
+(defoproperty max-tqme-of
               :label "maximal material entity of"
               :domain b/material_entity
-              :inverse has-max-tqc)
+              :inverse has-max-tqme)
 
-(add-subproperty min-tqc-of has-max-tqc)
-(add-subproperty has-min-tqc max-tqc-of)
+(add-subproperty min-tqme-of has-max-tqme)
+(add-subproperty has-min-tqme max-tqme-of)
 
 ;; we steal a bit of stuff from tawny.owl to build our generators
 (defmontfn
@@ -137,12 +137,12 @@
 (defn temp
   [o ctor relation class]
   (owl-some o
-            has-max-tqc
+            has-max-tqme
             (owl-some o
-                      has-min-tqc
+                      has-min-tqme
                       (ctor o
                             relation
-                            (owl-some o min-tqc-of class)
+                            (owl-some o min-tqme-of class)
                             )
                       )
             )
@@ -151,10 +151,10 @@
 (defn perm-gen
   [o ctor relation class]
   (owl-and
-    (owl-some o has-min-tqc
-              (ctor o relation (owl-some o min-tqc-of class)))
-    (owl-only o has-min-tqc
-              (ctor o relation (owl-some o min-tqc-of class)))
+    (owl-some o has-min-tqme
+              (ctor o relation (owl-some o min-tqme-of class)))
+    (owl-only o has-min-tqme
+              (ctor o relation (owl-some o min-tqme-of class)))
 
     )
   )
