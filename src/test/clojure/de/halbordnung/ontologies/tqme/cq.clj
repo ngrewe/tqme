@@ -76,20 +76,20 @@
       "A human having teeth at some time → OK"))
 
 (deftest tgr_cm-
-  (def color (o/owl-class to "color"
+  (def colour (o/owl-class to "colour"
                :super b/quality))
-  (def red-color (o/owl-class to "red-color"
-               :super color))
-  (def green-color (o/owl-class to "green-color"
-               :super color))
-  (o/disjoint-classes to (list green-color red-color))
+  (def red-colour (o/owl-class to "red-colour"
+               :super colour))
+  (def green-colour (o/owl-class to "green-colour"
+               :super colour))
+  (o/disjoint-classes to (list green-colour red-colour))
   (def apple (o/owl-class to "apple"
                :super (o/owl-and b/material_entity
-                                 (o/owl-some c/has-min-tqme (o/owl-some b/specifically_depended_on_by green-color)))))
+                                 (o/owl-some c/has-min-tqme (o/owl-some b/specifically_depended_on_by green-colour)))))
   (is (satisfiable? to (o/owl-and apple
                                   (o/owl-some c/has-min-tqme (o/owl-only b/specifically_depended_on_by
-                                                                                     (o/|| red-color (o/! color))))))
-      "An apple that at some time has no other color than red → OK"))
+                                                                                     (o/|| red-colour (o/! colour))))))
+      "An apple that at some time has no other colour than red → OK"))
 
 (deftest tgr_cp1
   (def birth (o/owl-class to "birth"
@@ -171,40 +171,40 @@
 
 (deftest psr_cm-
 
-  (o/owl-class to "sex"
-               :super b/quality)
-  (o/owl-class to "male-sex"
-               :super "sex")
-  (o/owl-class to "female-sex"
-               :super "sex")
-  (o/disjoint-classes to (list "male-sex" "female-sex"))
-  (o/owl-class to "mammal"
-               :super (o/owl-and to b/material_entity
-                                 (c/perm-spec to (o/exactly to 1 b/specifically_depended_on_by "sex"))))
+  (def sex (o/owl-class to "sex"
+               :super b/quality))
+  (def male-sex (o/owl-class to "male-sex"
+               :super sex))
+  (def female-sex (o/owl-class to "female-sex"
+               :super sex))
+  (o/disjoint-classes to (list male-sex female-sex))
+  (def mammal (o/owl-class to "mammal"
+               :super (o/owl-and b/material_entity
+                                 (c/perm-spec to (o/exactly 1 b/specifically_depended_on_by sex)))))
 
-  (is (not (satisfiable? to (o/owl-and to "mammal"
-                                       (o/owl-some to b/specifically_depended_on_by "male-sex")
-                                       (o/owl-some to b/specifically_depended_on_by "female-sex"))))
+  (is (not (satisfiable? to (o/owl-and mammal
+                                       (o/owl-some b/specifically_depended_on_by male-sex)
+                                       (o/owl-some b/specifically_depended_on_by female-sex))))
       "A mammal that is biologically male at some time and biologically female at some other time → owl:Nothing"))
 
 (deftest psr_cp1
-  (o/owl-class to "life"
-               :super b/history)
-  (o/owl-class to "organism"
-               :super (o/owl-and to b/material_entity
-                                 (c/perm-spec to (o/exactly to 1 b/participates_in_at_all_times "life"))))
+  (def life (o/owl-class to "life"
+               :super b/history))
+  (def organism (o/owl-class to "organism"
+               :super (o/owl-and b/material_entity
+                                 (c/perm-spec to (o/exactly 1 b/participates_in_at_all_times life)))))
 
   (let
    [joes-life (o/individual to "joes-life"
-                            :type "life")
+                            :type life)
     joe (o/individual to "joe"
-                      :type "organism"
-                      :fact (o/fact to b/participates_in_at_all_times joes-life))
+                      :type organism
+                      :fact (o/fact b/participates_in_at_all_times joes-life))
     other-life (o/individual to "other-life"
-                             :type "life"
+                             :type life
                              :different joes-life)]
     (o/with-probe-axioms to
-      [a (o/add-fact to joe (o/fact to b/participates_in_at_all_times other-life))]
+      [a (o/add-fact to joe (o/fact b/participates_in_at_all_times other-life))]
 
       (is (not (r/consistent? to))
           "Joe participates in two different lives → owl:Nothing"))))
@@ -212,26 +212,26 @@
 ;; PSR_cp2 needs to be reformulated -- it is nonesense as is
 
 (deftest pgr_cm+
-  (o/owl-class to "oxygen-molecule"
-               :super b/material_entity)
-  (o/owl-class to "red-blood-cell"
-               :super b/material_entity)
-  (o/owl-class to "root-phase"
-               :super (o/owl-and to
+  (def oxygen-molecule (o/owl-class to "oxygen-molecule"
+               :super b/material_entity))
+  (def red-blood-cell (o/owl-class to "red-blood-cell"
+               :super b/material_entity))
+  (def root-phase (o/owl-class to "root-phase"
+               :super (o/owl-and
                                  c/phase
-                                 (o/! to (o/owl-some to b/has_proper_occurrent_part o/owl-thing))
-                                 (o/! to (o/owl-some to c/phase-of (o/owl-some to b/has_continuant_part_at_all_times
-                                                                               "oxygen-molecule")))))
-  (o/disjoint-classes to (list "oxygen-molecule" "red-blood-cell"))
+                                 (o/! (o/owl-some b/has_proper_occurrent_part o/owl-thing))
+                                 (o/! (o/owl-some c/phase-of (o/owl-some b/has_continuant_part_at_all_times
+                                                                               oxygen-molecule))))))
+  (o/disjoint-classes to (list oxygen-molecule red-blood-cell))
 
-  (o/add-superclass to "red-blood-cell"
-                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times "oxygen-molecule"))
+  (o/add-superclass to red-blood-cell
+                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times oxygen-molecule))
 
     (o/with-probe-axioms to
                          [a (o/add-subclass to
-                              (o/owl-some to c/min-tqme-of "red-blood-cell")
-                              (o/! to (o/owl-some to b/has_continuant_part_at_all_times
-                                                  (o/owl-some to c/min-tqme-of "oxygen-molecule")))
+                              (o/owl-some c/min-tqme-of red-blood-cell)
+                              (o/! (o/owl-some b/has_continuant_part_at_all_times
+                                                  (o/owl-some c/min-tqme-of oxygen-molecule)))
                               )]
                          (is (not (r/consistent? to))
                              "There are red blood cells without oxygen molecules → owl:Nothing"))
@@ -240,13 +240,13 @@
 
 (deftest pgr_cm-
 
-  (o/owl-class to "apple"
-               :super b/material_entity)
-  (o/owl-class to "colour"
-               :super b/quality)
+  (def apple (o/owl-class to "apple"
+               :super b/material_entity))
+  (def colour (o/owl-class to "colour"
+               :super b/quality))
 
-  (o/add-superclass to "apple"
-                    (c/perm-gen to o/owl-some b/specifically_depended_on_by "colour"))
+  (o/add-superclass to apple
+                    (c/perm-gen to o/owl-some b/specifically_depended_on_by colour))
 
   (.flush ^OWLReasoner (r/reasoner to))
     (is (r/consistent? to)
@@ -254,24 +254,24 @@
 
     (o/with-probe-axioms to
       [a (o/add-subclass to
-                         (o/owl-some to c/min-tqme-of "apple")
-                         (o/! to (o/owl-some to b/specifically_depended_on_by
-                                             (o/owl-some to c/min-tqme-of "colour"))))]
+                         (o/owl-some c/min-tqme-of apple)
+                         (o/! (o/owl-some b/specifically_depended_on_by
+                                             (o/owl-some c/min-tqme-of colour))))]
       (is (not (r/consistent? to))
           "There are apples without a colour → owl:Nothing"))
   )
 
 (deftest pgr_cp1
 
-  (o/owl-class to "organism"
-               :super b/material_entity)
-  (o/owl-class to "eco-process"
-               :super b/process)
+  (def organism (o/owl-class to "organism"
+               :super b/material_entity))
+  (def eco-process (o/owl-class to "eco-process"
+               :super b/process))
 
-  (o/add-superclass to "organism"
-                    (o/owl-and to
-                               (o/owl-some to c/has-min-tqme (o/owl-some to b/participates_in_at_all_times "eco-process"))
-                               (o/owl-only to c/has-min-tqme (o/owl-some to b/participates_in_at_all_times "eco-process"))
+  (o/add-superclass to organism
+                    (o/owl-and
+                               (o/owl-some c/has-min-tqme (o/owl-some b/participates_in_at_all_times eco-process))
+                               (o/owl-only c/has-min-tqme (o/owl-some b/participates_in_at_all_times eco-process))
                                )
                     )
 
@@ -280,8 +280,8 @@
 
   (o/with-probe-axioms to
       [a (o/add-subclass to
-                         (o/owl-some to c/min-tqme-of "organism")
-                         (o/! to (o/owl-some to b/participates_in_at_all_times "eco-process")))]
+                         (o/owl-some c/min-tqme-of organism)
+                         (o/! (o/owl-some b/participates_in_at_all_times eco-process)))]
       (is (not (r/consistent? to))
           "There are organisms that do not participate in any ecologic process at certain times → owl:Nothing"))
   )
@@ -289,30 +289,30 @@
 
 (deftest pgr_transitivity
 
-  (o/owl-class to "blood-volume"
-               :super b/material_entity)
-  (o/owl-class to "red-blood-cell"
-               :super b/material_entity)
-  (o/owl-class to "oxygen-molecule"
-               :super b/material_entity)
+  (def blood-volume (o/owl-class to "blood-volume"
+               :super b/material_entity))
+  (def red-blood-cell (o/owl-class to "red-blood-cell"
+               :super b/material_entity))
+  (def oxygen-molecule (o/owl-class to "oxygen-molecule"
+               :super b/material_entity))
 
-  (o/disjoint-classes to (list "blood-volume" "red-blood-cell" "oxygen-molecule"))
+  (o/disjoint-classes to (list blood-volume red-blood-cell oxygen-molecule))
 
-  (o/add-superclass to "red-blood-cell"
+  (o/add-superclass to red-blood-cell
                     (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
-                                                                  "oxygen-molecule"))
+                                                                  oxygen-molecule))
 
-  (o/add-superclass to "blood-volume"
+  (o/add-superclass to blood-volume
                     (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
-                                                                      "red-blood-cell"))
+                                                                      red-blood-cell))
   (is (r/consistent? to)
       "Consistent TQME ontology for transitive permanent generic parthood")
   (is (not (satisfiable? to
-                         (o/owl-and to
-                                    (o/owl-some to c/min-tqme-of "blood-volume")
-                                    (o/! to (o/owl-some to
+                         (o/owl-and
+                                    (o/owl-some c/min-tqme-of blood-volume)
+                                    (o/! (o/owl-some
                                                         b/has_continuant_part_at_all_times
-                                                        (o/owl-some to c/min-tqme-of "oxygen-molecule"))))
+                                                        (o/owl-some c/min-tqme-of oxygen-molecule))))
                          ))
                            "There times where a blood volume has no oxygen molecules → owl:Nothing")
   )
