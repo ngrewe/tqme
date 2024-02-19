@@ -152,11 +152,11 @@
   (owl-some b/has_history (phase-perm-spec o class)))
 
 (defn perm-spec
-       [o class]
+       [class]
        class)
 
 (defn temp
-  [o ctor relation class]
+  [ctor relation class]
   (owl-some
             has-max-tqme
             (owl-some
@@ -170,7 +170,7 @@
   )
 
 (defn perm-gen
-  [o ctor relation class]
+  [ctor relation class]
   (owl-and
     (owl-some has-min-tqme
               (ctor relation (owl-some min-tqme-of class)))

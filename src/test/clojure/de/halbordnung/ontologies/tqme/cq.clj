@@ -53,11 +53,11 @@
                :super organism))
   (o/disjoint-classes to (list tooth organism))
   (o/add-superclass to tooth
-                    (c/temp to o/owl-some b/continuant_part_of_at_all_times organism))
+                    (c/temp o/owl-some b/continuant_part_of_at_all_times organism))
 
 
   (o/add-superclass to human
-                    (c/temp to o/owl-only b/has_continuant_part_at_all_times (o/owl-not tooth)))
+                    (c/temp o/owl-only b/has_continuant_part_at_all_times (o/owl-not tooth)))
   (is (r/consistent? to) "Ontology is consistent")
   (is (satisfiable? to (o/owl-and tooth
                                   (o/owl-some
@@ -125,10 +125,10 @@
                                                                                 :characteristic :inversefunctional)
                                                ventricle (o/owl-class to "ventricle"
                                                                       :super (o/owl-and b/material_entity
-                                                                                        (c/perm-spec to (o/owl-some part-of-brain brain))))
+                                                                                        (c/perm-spec (o/owl-some part-of-brain brain))))
                                                human (o/owl-class to "human"
                                                                   :super (o/owl-and b/material_entity
-                                                                                    (c/perm-spec to (o/owl-some has-brain brain))))
+                                                                                    (c/perm-spec (o/owl-some has-brain brain))))
 
                                                joes-brain (o/individual to "joes-brain"
                                                                         :type brain)
@@ -180,7 +180,7 @@
   (o/disjoint-classes to (list male-sex female-sex))
   (def mammal (o/owl-class to "mammal"
                :super (o/owl-and b/material_entity
-                                 (c/perm-spec to (o/exactly 1 b/specifically_depended_on_by sex)))))
+                                 (c/perm-spec (o/exactly 1 b/specifically_depended_on_by sex)))))
 
   (is (not (satisfiable? to (o/owl-and mammal
                                        (o/owl-some b/specifically_depended_on_by male-sex)
@@ -192,7 +192,7 @@
                :super b/history))
   (def organism (o/owl-class to "organism"
                :super (o/owl-and b/material_entity
-                                 (c/perm-spec to (o/exactly 1 b/participates_in_at_all_times life)))))
+                                 (c/perm-spec (o/exactly 1 b/participates_in_at_all_times life)))))
 
   (let
    [joes-life (o/individual to "joes-life"
@@ -225,7 +225,7 @@
   (o/disjoint-classes to (list oxygen-molecule red-blood-cell))
 
   (o/add-superclass to red-blood-cell
-                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times oxygen-molecule))
+                    (c/perm-gen o/owl-some b/has_continuant_part_at_all_times oxygen-molecule))
 
     (o/with-probe-axioms to
                          [a (o/add-subclass to
@@ -246,7 +246,7 @@
                :super b/quality))
 
   (o/add-superclass to apple
-                    (c/perm-gen to o/owl-some b/specifically_depended_on_by colour))
+                    (c/perm-gen o/owl-some b/specifically_depended_on_by colour))
 
   (.flush ^OWLReasoner (r/reasoner to))
     (is (r/consistent? to)
@@ -299,11 +299,11 @@
   (o/disjoint-classes to (list blood-volume red-blood-cell oxygen-molecule))
 
   (o/add-superclass to red-blood-cell
-                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
+                    (c/perm-gen o/owl-some b/has_continuant_part_at_all_times
                                                                   oxygen-molecule))
 
   (o/add-superclass to blood-volume
-                    (c/perm-gen to o/owl-some b/has_continuant_part_at_all_times
+                    (c/perm-gen o/owl-some b/has_continuant_part_at_all_times
                                                                       red-blood-cell))
   (is (r/consistent? to)
       "Consistent TQME ontology for transitive permanent generic parthood")
